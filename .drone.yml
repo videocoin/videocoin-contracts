@@ -1,5 +1,5 @@
 kind: pipeline
-type: docker
+type: kubernetes
 name: tests
 
 services:
@@ -12,7 +12,7 @@ services:
 
 steps:
 - name: tests
-  image: node:8.10.0
+  image: node:10
   commands:
   - npm install
   - node ./node_modules/truffle/build/cli.bundled.js test --network=ci
