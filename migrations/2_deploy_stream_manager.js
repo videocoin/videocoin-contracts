@@ -9,7 +9,7 @@ module.exports = function (deployer, network, accounts) {
     from = accounts[0];
   }
 
-  console.log(`Deploying StreamManager from ${from} on network: ${network}`);
+  console.log(`Deploying ${StreamManager.contractName} from ${from} on network: ${network}`);
 
   deployer.deploy(StreamManager, { from });
 

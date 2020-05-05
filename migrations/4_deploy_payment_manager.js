@@ -8,7 +8,7 @@ module.exports = function (deployer, network, accounts) {
   } else {
     from = accounts[0];
   }
-  console.log(`Deploying PaymentManager from ${from} on network: ${network}`);
+  console.log(`Deploying ${PaymentManager.contractName} from ${from} on network: ${network}`);
 
   deployer.deploy(PaymentManager, { from });
 

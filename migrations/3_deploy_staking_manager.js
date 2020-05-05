@@ -19,7 +19,7 @@ module.exports = function (deployer, network, accounts) {
     from = accounts[0];
   }
 
-  console.log(`Deploying StakingManager from ${from} on network: ${network}`);
+  console.log(`Deploying ${StakingManager.contractName} from ${from} on network: ${network}`);
 
   deployer.deploy(
     StakingManager,

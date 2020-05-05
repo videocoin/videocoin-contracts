@@ -12,14 +12,14 @@ module.exports = function(deployer, network, accounts) {
     native = remote = accounts[0];
   }
 
-  console.log(`Deploying NativeBridge from ${native} on network: ${network}`);
+  console.log(`Deploying ${NativeBridge.contractName} from ${native} on network: ${network}`);
   deployer.deploy(NativeBridge, { from: native });
 
   // NativeProxy doesn't require to have an owner. Reusing existing key
-  console.log(`Deploying NativeProxy from ${native} on network: ${network}`);
+  console.log(`Deploying ${NativeProxy.contractName} from ${native} on network: ${network}`);
   deployer.deploy(NativeProxy, { from: native });
 
-  console.log(`Deploying RemoteBridge from ${remote} on network: ${network}`);
+  console.log(`Deploying ${RemoteBridge.contractName} from ${remote} on network: ${network}`);
   deployer.deploy(RemoteBridge, { from: remote });
 
   console.log('Done');
