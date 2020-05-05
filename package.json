@@ -1,26 +1,23 @@
 {
   "name": "videocoin-contracts",
   "version": "1.0.0",
-  "description": "",
+  "description": "Smart contracts of Videocoin network",
   "main": "truffle-config.js",
   "directories": {
     "test": "test"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "node ./node_modules/truffle/build/cli.bundled.js test"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
     "@truffle/hdwallet-provider": "^1.0.34",
-    "openzeppelin-solidity": "^2.5.1",
-    "truffle-assertions": "^0.9.2"
+    "openzeppelin-solidity": "^2.5.1"
   },
   "devDependencies": {
     "mocha-logger": "^1.0.6",
-    "bn-chai": "^1.0.1",
     "chai-bn": "^0.2.0",
-    "chai-bignumber": "2.0.2",
     "chai": "^4.2.0",
     "chai-as-promised": "7.1.1",
     "directory-tree": "^2.2.4",
@@ -36,6 +33,7 @@
     "soldoc": "^0.1.3-beta.0",
     "solidity-coverage": "^0.7.5",
     "typescript": "^3.8.3",
-    "truffle": "^5.1.24"
+    "truffle": "^5.1.24",
+    "truffle-assertions": "^0.9.2"
   }
 }

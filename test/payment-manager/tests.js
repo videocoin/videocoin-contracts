@@ -4,7 +4,7 @@ const truffleAssert = require("truffle-assertions");
 const BN = web3.utils.BN;
 require("chai")
   .use(require("chai-as-promised"))
-  .use(require("bn-chai")(BN))
+  .use(require('chai-bn')(BN))
   .should();
 
 const { ZERO_BYTES32, ZERO_ADDRESS } = require("../utils");
