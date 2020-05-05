@@ -34,7 +34,7 @@ module.exports = {
       network_id: "*",
     },
 
-    evereststage: {
+    everest: {
       provider: function () {
         // IMPORTANT: do not change key order!
         const privateKeys = [

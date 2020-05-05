@@ -2,8 +2,8 @@ var StreamManager = artifacts.require("StreamManager");
 
 module.exports = function (deployer, network, accounts) {
   var from;
-  if (network === 'evereststage') {
-    // Key order is defined in evereststage provider
+  if (network === 'everest') {
+    // Key order is defined in everest provider
     from = accounts[0];
   } else {
     from = accounts[0];

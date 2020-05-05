@@ -4,8 +4,8 @@ const RemoteBridge = artifacts.require("RemoteBridge");
 
 module.exports = function(deployer, network, accounts) {
   var native, remote;
-  if (network === 'evereststage') {
-    // Key order is defined in evereststage provider
+  if (network === 'everest') {
+    // Key order is defined in everest provider
     native = accounts[3];
     remote = accounts[4];
   } else {

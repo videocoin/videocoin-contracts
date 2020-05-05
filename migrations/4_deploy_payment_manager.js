@@ -2,8 +2,8 @@ const PaymentManager = artifacts.require("PaymentManager");
 
 module.exports = function (deployer, network, accounts) {
   var from;
-  if (network === 'evereststage') {
-    // Key order is defined in evereststage provider
+  if (network === 'everest') {
+    // Key order is defined in everest provider
     from = accounts[2];
   } else {
     from = accounts[0];
