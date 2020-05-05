@@ -34,6 +34,14 @@ module.exports = {
       network_id: "*",
     },
 
+    coverage: {
+      host: "localhost",
+      network_id: "*",
+      port: 8555,
+      gas: 0xfffffffffff,
+      gasPrice: 0x01
+    },
+
     everest: {
       provider: function () {
         // IMPORTANT: do not change key order!
@@ -59,6 +67,8 @@ module.exports = {
   mocha: {
     // timeout: 100000
   },
+
+  plugins: ["solidity-coverage"],
 
   compilers: {
     solc: {

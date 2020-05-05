@@ -4,8 +4,8 @@ VERSION ?= dev
 
 .PHONY: images
 images:
-	docker build -t ${REGISTRY}/contracts:$(VERSION) .
+	docker build -t ${REGISTRY}/deployment:$(VERSION) .
 
 .PHONY: push
 push:
-	docker push ${REGISTRY}/contracts:$(VERSION)
+	docker push ${REGISTRY}/deployment:$(VERSION)
