@@ -11,7 +11,14 @@ const slashRate = 50;
 const slashFund = "0x0000000000000000000000000000000000000000";
 
 module.exports = function (deployer, network, accounts) {
-  const from = accounts[0];
+  var from;
+  if (network === 'evereststage') {
+    // Key order is defined in evereststage provider
+    from = accounts[1];
+  } else {
+    from = accounts[0];
+  }
+
   console.log(`Deploying StakingManager from ${from} on network: ${network}`);
 
   deployer.deploy(

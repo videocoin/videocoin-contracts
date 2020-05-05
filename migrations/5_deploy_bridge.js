@@ -3,16 +3,24 @@ const NativeProxy = artifacts.require("NativeProxy");
 const RemoteBridge = artifacts.require("RemoteBridge");
 
 module.exports = function(deployer, network, accounts) {
-  const from = accounts[0];
+  var native, remote;
+  if (network === 'evereststage') {
+    // Key order is defined in evereststage provider
+    native = accounts[3];
+    remote = accounts[4];
+  } else {
+    native = remote = accounts[0];
+  }
 
-  console.log(`Deploying NativeBridge from ${from} on network: ${network}`);
-  deployer.deploy(NativeBridge, { from });
+  console.log(`Deploying NativeBridge from ${native} on network: ${network}`);
+  deployer.deploy(NativeBridge, { from: native });
 
-  console.log(`Deploying NativeProxy from ${from} on network: ${network}`);
-  deployer.deploy(NativeProxy, { from });
+  // NativeProxy doesn't require to have an owner. Reusing existing key
+  console.log(`Deploying NativeProxy from ${native} on network: ${network}`);
+  deployer.deploy(NativeProxy, { from: native });
 
-  console.log(`Deploying RemoteBridge from ${from} on network: ${network}`);
-  deployer.deploy(RemoteBridge, { from });
+  console.log(`Deploying RemoteBridge from ${remote} on network: ${network}`);
+  deployer.deploy(RemoteBridge, { from: remote });
 
-  console.log('Done')
+  console.log('Done');
 };
