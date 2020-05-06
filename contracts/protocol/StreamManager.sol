@@ -31,11 +31,23 @@ contract StreamManager is ManagerInterface, Ownable {
 
   string public version;
   Roles.Role private _validators;
+  Roles.Role private _publishers;
   mapping (uint256 => StreamRequest) public requests;
   mapping (uint256 => string) public profiles;
 
   constructor() public {
-    version = "0.0.3";
+    version = "0.0.7";
+    // owner is one of the publisher for backward compatibility.
+    addPublisher(msg.sender);
+  }
+
+   /**
+  * @notice Returns the contracts` version.
+  * @dev Streams hvae the same version with the Manager contracts that created them\.
+  * @return Version string.
+  */
+  function getVersion() public view returns (string memory) {
+    return version;
   }
 
   /**
@@ -73,13 +85,37 @@ contract StreamManager is ManagerInterface, Ownable {
   }
 
   /**
-  * @notice Returns the contracts` version.
-  * @dev Streams hvae the same version with the Manager contracts that created them\.
-  * @return Version string.
+  * @notice Manager can add publishers.
+  * @dev Requires: that the address was not already added and that it`s non-zero address.
+  * Modifiers: only callable by manager account.
+  * @param v Address of publisher to be added.
   */
-  function getVersion() public view returns (string memory) {
-    return version;
+  function addPublisher(address v) public onlyOwner {
+    _publishers.add(v);
+    emit PublisherAdded(v);
   }
+
+  /**
+  * @notice Manager can remove publishers.
+  * @dev Requires: that the address was previously added and that it`s non-zero address.
+  * Modifiers: only callable by manager account.
+  * @param v Address of publisher to be removed.
+  */
+  function removePublisher(address v) public onlyOwner {
+    _publishers.remove(v);
+    emit PublisherRemoved(v);
+  }
+
+  /**
+  * @notice Query whether a certain address is a publisher.
+  * @dev Also used by the stream contract onlyValidator modifier.
+  * @param v Address of publisher to be queried.
+  * @return True if address is publisher, false otherwise.
+  */
+  function isPublisher(address v) public view returns (bool) {
+    return _publishers.has(v);
+  }
+
 
   /**
   * @notice Users can request new streams (contracts).
@@ -112,12 +148,12 @@ contract StreamManager is ManagerInterface, Ownable {
   }
 
   /**
-  * @notice Manager can review stream requests, add extra data and approve them.
+  * @notice Publishers can review stream requests, add extra data and approve them.
   * @dev Requires: that the request has been registered before.
-  * Modifiers: only callable by manager account.
+  * Modifiers: only callable by one of the publishers account.
   * @param streamId ID of stream
   */
-  function approveStreamCreation(uint256 streamId) public onlyOwner {
+  function approveStreamCreation(uint256 streamId) public onlyPublisher {
     StreamRequest storage request = requests[streamId];
     require(request.client != address(0));
 
@@ -153,17 +189,17 @@ contract StreamManager is ManagerInterface, Ownable {
 
   /**
   * @notice Registers a new input chunk id with the given stream.
-  * @dev Called by manager for now. Method is called as input chunk ids are created.
+  * @dev Called by one of the publishers. Method is called as input chunk ids are created.
   * Requires: that the a stream corresponding to this id was already created.
   * Requires: that the array of wattages/rewards is non-empty.
   * Requires: that the call to stream.addInputChunkId() fullfils it`s requirements.
   * Calls addInputChunkId on the stream.
-  * Modifiers: only callable by manager account.
+  * Modifiers: only callable by one of the publishers account.
   * @param streamId ID of stream to which we want to add the input chunk id.
   * @param chunkId ID of new input chunk; must be unique for that stream.
   * @param wattages Array of wattage rewards for transcoding this chunk.
   */
-  function addInputChunkId(uint256 streamId, uint256 chunkId, uint256[] memory wattages) public onlyOwner {
+  function addInputChunkId(uint256 streamId, uint256 chunkId, uint256[] memory wattages) public onlyPublisher {
     StreamRequest storage request = requests[streamId];
     require(request.stream != address(0));
     require(wattages.length == request.profiles.length);
@@ -206,13 +242,13 @@ contract StreamManager is ManagerInterface, Ownable {
   }
 
   /**
-  * @notice Manager can allow client refunds.
+  * @notice Publisher can allow client refunds.
   * @dev Requires: that there is a request with this id.
   * Requires: that refund was not already allowed.
-  * Modifiers: only callable by manager account.
+  * Modifiers: only callable by one of the publishers account.
   * @param streamId ID of stream for which the refund is allowed.
   */
-  function allowRefund(uint256 streamId) public onlyOwner {
+  function allowRefund(uint256 streamId) public onlyPublisher {
     require(requests[streamId].client != address(0));
     require(requests[streamId].refund != true);
 
@@ -222,19 +258,30 @@ contract StreamManager is ManagerInterface, Ownable {
   }
 
   /**
-  * @notice Manager can revoke refund permission.
+  * @notice Publisher can revoke refund permission.
   * @dev Requires: that there is a request with this id.
   * Requires: that refund was allowed before.
-  * Modifiers: only callable by manager account.
+  * Modifiers: only callable by one of the publishers account.
   * @param streamId ID of stream for which the refund is revoked.
   */
-  function revokeRefund(uint256 streamId) public onlyOwner {
+  function revokeRefund(uint256 streamId) public onlyPublisher {
     require(requests[streamId].client != address(0));
     require(requests[streamId].refund != false);
 
     requests[streamId].refund = false;
 
     emit RefundRevoked(streamId);
+  }
+
+  /// modifiers
+
+  /**
+  * @notice Modifier for methods only callable by publishers.
+  * @dev The stream manager holds & manages the publishers list.
+  */
+  modifier onlyPublisher() {
+    require(isPublisher(msg.sender));
+    _;
   }
 
   /// @dev events
@@ -245,6 +292,9 @@ contract StreamManager is ManagerInterface, Ownable {
 
   event ValidatorAdded(address indexed validator);
   event ValidatorRemoved(address indexed validator);
+
+  event PublisherAdded(address indexed publisher);
+  event PublisherRemoved(address indexed publisher);
 
   event RefundAllowed(uint256 indexed streamId);
   event RefundRevoked(uint256 indexed streamId);

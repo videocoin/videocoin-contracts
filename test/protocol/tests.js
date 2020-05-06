@@ -26,7 +26,7 @@ const wattagesArr = Array(10).fill(wattage);
 
 contract(
   "stream",
-  ([managerAcc, client, miner, validator, malicious, anyone]) => {
+  ([managerAcc, client, miner, validator, malicious, publisher, anyone]) => {
     // let this.mStream = null;
     let streamId = new BN(1);
 
@@ -74,6 +74,16 @@ contract(
         isValidator.should.be.false;
       });
 
+      it("should be able to add/remove publisher", async() => {
+        await this.mManager.addPublisher(publisher, { from: managerAcc });
+        let isPub = await this.mManager.isPublisher(publisher);
+        isPub.should.be.true;
+
+        await this.mManager.removePublisher(publisher, { from: managerAcc });
+        isPub = await this.mManager.isPublisher(publisher);
+        isPub.should.be.false;
+      });
+
       it("should only allow owner to manage validators", async () => {
         // Given we have a stream request
 
@@ -94,7 +104,7 @@ contract(
         }
       });
 
-      it("should only allow owner to manage stream creation", async () => {
+      it("shouldn't allow non-publisher to manage stream creation", async () => {
         // Given we have a stream request
         await this.mManager.requestStream.call(streamId, profiles, {
           from: client,
@@ -112,7 +122,7 @@ contract(
         }
       });
 
-      it("should only allow owner to manage refunds", async () => {
+      it("shouldn't allow non-publisher to manage refunds", async () => {
         // Given we have a stream request
         await this.mManager.requestStream(streamId, profiles, { from: client });
 
@@ -134,6 +144,12 @@ contract(
           ensuresException(e);
         }
       });
+
+       it("should allow publisher to manage refunds", async () => {
+         await this.mManager.addPublisher(publisher, { from: managerAcc });
+         await this.mManager.requestStream(streamId, profiles, { from: client });
+         await this.mManager.allowRefund(streamId, { from: publisher });
+       });
     });
 
     describe("test Stream contract creation", () => {
@@ -174,13 +190,15 @@ contract(
         }
       });
 
-      it("should be able to approve a stream", async () => {
+      it("publisher should be able to approve a stream", async () => {
+        await this.mManager.addPublisher(publisher, { from: managerAcc });
+
         // Given that a client requested to create a stream
         await this.mManager.requestStream(streamId, profiles, { from: client });
 
         // When the manager approves the stream
         const res = await this.mManager.approveStreamCreation(streamId, {
-          from: managerAcc,
+          from: publisher,
         });
 
         // Then the StreamApproved is emited with correct params
@@ -299,11 +317,13 @@ contract(
         const streamAddr = res.receipt.logs[0].args.streamAddress;
         this.mStream = await stream.at(streamAddr);
 
+        await this.mManager.addPublisher(publisher, { from: managerAcc });
+
         await this.mManager.addInputChunkId(streamId, chunks[0], wattages, {
-          from: managerAcc,
+          from: publisher,
         });
         await this.mManager.addInputChunkId(streamId, chunks[1], wattages, {
-          from: managerAcc,
+          from: publisher,
         });
       });
 
