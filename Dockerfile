@@ -12,4 +12,6 @@ RUN cd /contracts
 
 RUN npm install --production
 
+RUN truffle compile
+
 CMD ["bash"]
