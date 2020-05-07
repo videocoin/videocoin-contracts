@@ -1,6 +1,6 @@
 FROM node:10
 
-ARG tag=unset
+ARG tag="stub 0.0.0"
 
 WORKDIR /contracts
 

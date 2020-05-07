@@ -15,6 +15,6 @@ contract Versionable {
 
   constructor() public {
     // IMPORTANT: do not change this value
-    version = "unset";
+    version = "stub 0.0.0";
   }
 }

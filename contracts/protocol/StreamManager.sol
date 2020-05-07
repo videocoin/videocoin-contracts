@@ -30,7 +30,6 @@ contract StreamManager is ManagerInterface, Ownable, Versionable {
     uint256 streamId;
   }
 
-  string public version;
   Roles.Role private _validators;
   Roles.Role private _publishers;
   mapping (uint256 => StreamRequest) public requests;
