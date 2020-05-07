@@ -3,6 +3,7 @@ pragma experimental ABIEncoderV2;
 
 import "openzeppelin-solidity/contracts/ownership/Ownable.sol";
 import "openzeppelin-solidity/contracts/math/SafeMath.sol";
+import "../tools/Versionable.sol";
 
 /**
 * @title DPoS staking manager for transcoders and delegators.
@@ -10,7 +11,7 @@ import "openzeppelin-solidity/contracts/math/SafeMath.sol";
 * Transcoder is bonded if approval period passes and self stake is higher than minimum stake.
 * Transcoders and delegators can withdraw stake after a set amount of time.
 */
-contract StakingManager is Ownable {
+contract StakingManager is Ownable, Versionable {
   using SafeMath for uint256;
 
   enum TranscoderState { BONDING, BONDED, UNBONDED, UNBONDING }

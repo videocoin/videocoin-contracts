@@ -1,12 +1,13 @@
 pragma solidity ^0.5.17;
 
 import "openzeppelin-solidity/contracts/ownership/Ownable.sol";
+import "../tools/Versionable.sol";
 
 /**
 * @title Payment manager contract
 * @notice This contract is used by Payment manager service as a storage for payout transactions which were executed on local and foreign blockchains.
 */
-contract PaymentManager is Ownable {
+contract PaymentManager is Ownable, Versionable {
 
   enum State {EMPTY, PENDING, FAILED, SUCCESS}
 

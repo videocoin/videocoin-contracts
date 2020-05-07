@@ -1,8 +1,9 @@
 pragma solidity ^0.5.17;
 
 import "openzeppelin-solidity/contracts/ownership/Ownable.sol";
+import "../tools/Versionable.sol";
 
-contract NativeProxy {
+contract NativeProxy is Versionable {
 
   event TransferProxied(address indexed from, address indexed to, uint256 value);
 

@@ -6,6 +6,7 @@ import "openzeppelin-solidity/contracts/access/Roles.sol";
 import "./Stream.sol";
 import "./Escrow.sol";
 import "./ManagerInterface.sol";
+import "../tools/Versionable.sol";
 
 
 /**
@@ -16,7 +17,7 @@ import "./ManagerInterface.sol";
 *  - manages Stream aproval & creation
 *  - manages refund permissions
 */
-contract StreamManager is ManagerInterface, Ownable {
+contract StreamManager is ManagerInterface, Ownable, Versionable {
   using Roles for Roles.Role;
 
   struct StreamRequest {

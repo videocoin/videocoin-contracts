@@ -2,8 +2,9 @@ pragma solidity ^0.5.17;
 pragma experimental ABIEncoderV2;
 
 import "openzeppelin-solidity/contracts/ownership/Ownable.sol";
+import "../tools/Versionable.sol";
 
-contract RemoteBridge is Ownable {
+contract RemoteBridge is Ownable, Versionable {
 
   event TransferRegistered(bytes32 indexed hash, address indexed signer, uint64 nonce);
 

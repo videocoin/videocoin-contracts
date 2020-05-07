@@ -1,9 +1,10 @@
 pragma solidity ^0.5.17;
 
 import "openzeppelin-solidity/contracts/ownership/Ownable.sol";
+import "../tools/Versionable.sol";
 
 /// @title VID homd bridge contract: handles VID transfers on alpha network
-contract NativeBridge is Ownable {
+contract NativeBridge is Ownable, Versionable {
 
   event TransferBridged(address indexed from, address indexed to, bytes32 indexed txHash, uint256 value);
 

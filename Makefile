@@ -5,11 +5,12 @@ GANACHE_DOCKER=docker run \
 
 REGISTRY=registry.videocoin.net/contracts
 VERSION ?= dev
+GIT_TAG=$(shell git describe --exact-match --tags 2> /dev/null || git rev-parse --short HEAD)
 
 
 .PHONY: images
 images:
-	docker build -t ${REGISTRY}/deployment:$(VERSION) .
+	docker build --build-arg tag=$(GIT_TAG) -t ${REGISTRY}/deployment:$(VERSION) .
 
 .PHONY: push
 push:
