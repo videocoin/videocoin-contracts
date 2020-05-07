@@ -14,6 +14,7 @@ contract Versionable {
   string public version;
 
   constructor() public {
-    version = "0.0.0";
+    // IMPORTANT: do not change this value
+    version = "unset";
   }
 }
