@@ -8,6 +8,8 @@ This repo contains ethereum based smart contracts for VideoCoin blockchain.
 
 * NodeJS v10
 
+* Docker
+
 * Truffle Suite
 
 To install truffle run:
@@ -62,7 +64,16 @@ truffle migrate
 
 ### Everest environment
 
-TODO
+To deploy contracts into dev, staging, prod clusters docker images are used. Images with ABI files should be submitted to docker registry.
+
+To create and submitt new image in terminal run:
+
+```$(bash)
+make images
+make push
+```
+
+TODO: add link to deployment repo.
 
 ## Code coverage
 
@@ -72,4 +83,4 @@ To run code coverage in terminal run:
 truffle run coverage
 ```
 
-*Note*: Some tests may fail durring coverage run due to high gas consumption. We might need to exclude those from coverage run.
+**Note**: *Some tests may fail durring coverage run due to high gas consumption. We might need to exclude those from coverage run.*
