@@ -37,7 +37,6 @@ contract StreamManager is ManagerInterface, Ownable, Versionable {
   mapping (uint256 => string) public profiles;
 
   constructor() public {
-    version = "0.0.7";
     // owner is one of the publisher for backward compatibility.
     addPublisher(msg.sender);
   }
