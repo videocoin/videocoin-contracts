@@ -1,4 +1,4 @@
-pragma solidity^0.5.17;
+pragma solidity^0.5.13;
 
 /**
 * @title Stream manager smart contract interface.
