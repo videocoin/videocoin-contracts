@@ -72,7 +72,8 @@ module.exports = {
 
   compilers: {
     solc: {
-      version: "0.5.17", 
+      // NOTE: we are using this compiler version, because of sealer EVM version
+      version: "0.5.13", 
       settings: {
         // See the solidity docs for advice about optimization and evmVersion
         optimizer: {
