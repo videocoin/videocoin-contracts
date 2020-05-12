@@ -1,6 +1,6 @@
 var StreamManager = artifacts.require("StreamManager");
 
-module.exports = function (deployer, network, accounts) {
+module.exports = async function (deployer, network, accounts) {
   var from;
   if (network === 'everest') {
     // Key order is defined in everest provider
@@ -11,7 +11,7 @@ module.exports = function (deployer, network, accounts) {
 
   console.log(`Deploying ${StreamManager.contractName} from ${from} on network: ${network}`);
 
-  deployer.deploy(StreamManager, { from });
+  await deployer.deploy(StreamManager, { from });
 
   console.log("Done");
 };

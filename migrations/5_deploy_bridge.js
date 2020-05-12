@@ -2,7 +2,7 @@ const NativeBridge = artifacts.require("NativeBridge");
 const NativeProxy = artifacts.require("NativeProxy");
 const RemoteBridge = artifacts.require("RemoteBridge");
 
-module.exports = function(deployer, network, accounts) {
+module.exports = async function(deployer, network, accounts) {
   var native, remote;
   if (network === 'everest') {
     // Key order is defined in everest provider
@@ -13,14 +13,14 @@ module.exports = function(deployer, network, accounts) {
   }
 
   console.log(`Deploying ${NativeBridge.contractName} from ${native} on network: ${network}`);
-  deployer.deploy(NativeBridge, { from: native });
+  await deployer.deploy(NativeBridge, { from: native });
 
   // NativeProxy doesn't require to have an owner. Reusing existing key
   console.log(`Deploying ${NativeProxy.contractName} from ${native} on network: ${network}`);
-  deployer.deploy(NativeProxy, { from: native });
+  await deployer.deploy(NativeProxy, { from: native });
 
   console.log(`Deploying ${RemoteBridge.contractName} from ${remote} on network: ${network}`);
-  deployer.deploy(RemoteBridge, { from: remote });
+  await deployer.deploy(RemoteBridge, { from: remote });
 
   console.log('Done');
 };
