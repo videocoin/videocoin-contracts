@@ -6,7 +6,7 @@ module.exports = async function (deployer, network, accounts) {
   const tenvids = web3.utils.toWei("10");
 
   var from;
-  var minDelegation, minSelfDelegation;
+  var minDelegation, minSelfStake;
   var approvalPeriod, unbondingPeriod;
   var slashRate, slashFund;
   if (network === 'everest') {
@@ -14,7 +14,7 @@ module.exports = async function (deployer, network, accounts) {
     from = accounts[1];
 
     minDelegation = twovids;
-    minSelfDelegation = tenvids;
+    minSelfStake = tenvids;
     approvalPeriod = 100;
     unbondingPeriod = 100;
     slashRate = 0;
@@ -23,7 +23,7 @@ module.exports = async function (deployer, network, accounts) {
     from = accounts[0];
 
     minDelegation = sixvids;
-    minSelfDelegation = tenvids;
+    minSelfStake = tenvids;
     approvalPeriod = 5;
     unbondingPeriod = 10;
     slashRate = 50;
@@ -31,7 +31,7 @@ module.exports = async function (deployer, network, accounts) {
   }
 
   console.log(`Deploying ${StakingManager.contractName} from ${from} on network: ${network}`);
-  console.log(`required stake:      ${minSelfDelegation}`);
+  console.log(`required stake:      ${minSelfStake}`);
   console.log(`required delegation: ${minDelegation}`);
   console.log(`approval period:     ${approvalPeriod}`);
   console.log(`unbonding period:    ${unbondingPeriod}`);
@@ -41,7 +41,7 @@ module.exports = async function (deployer, network, accounts) {
   await deployer.deploy(
     StakingManager,
     minDelegation,
-    minSelfDelegation,
+    minSelfStake,
     approvalPeriod,
     unbondingPeriod,
     slashRate,
