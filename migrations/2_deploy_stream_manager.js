@@ -1,4 +1,4 @@
-var StreamManager = artifacts.require("StreamManager");
+const StreamManager = artifacts.require("StreamManager");
 
 module.exports = async function (deployer, network, accounts) {
   var from;
@@ -12,6 +12,8 @@ module.exports = async function (deployer, network, accounts) {
   console.log(`Deploying ${StreamManager.contractName} from ${from} on network: ${network}`);
 
   await deployer.deploy(StreamManager, { from });
+  const contract = await StreamManager.deployed();
+  const owner = await contract.owner();
 
   console.log("Done");
 };
