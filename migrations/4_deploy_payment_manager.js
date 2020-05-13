@@ -1,4 +1,6 @@
 const PaymentManager = artifacts.require("PaymentManager");
+const Registry = artifacts.require("Registry");
+const registrar = require('./registrar');
 
 module.exports = async function (deployer, network, accounts) {
   var from;
@@ -11,6 +13,7 @@ module.exports = async function (deployer, network, accounts) {
   console.log(`Deploying ${PaymentManager.contractName} from ${from} on network: ${network}`);
 
   await deployer.deploy(PaymentManager, { from });
+  await registrar.register(PaymentManager, Registry);
 
   console.log("Done");
 };

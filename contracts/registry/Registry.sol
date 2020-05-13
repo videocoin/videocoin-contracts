@@ -10,8 +10,6 @@ contract Registry is Ownable {
     string  name;
     string  version;
     address account;
-    address owner;
-    string  bindings;
     uint    index;
   }
 
@@ -21,21 +19,20 @@ contract Registry is Ownable {
   event VersionAdded(string indexed name, string indexed version);
   event VersionUpdated(string indexed name, string indexed versions);
 
-  function update(string memory name, string memory version, address account, address owner, string memory bindings) public onlyOwner {
+  function update(string memory name, string memory version, address account) public onlyOwner {
     require(bytes(name).length != 0, "Registry: name is required");
     require(bytes(version).length != 0, "Registry: version is required");
     require(account != address(0), "Registry: account can't be zero");
-    require(owner != address(0), "Registry: owner can't be zero");
 
     bytes32 key = sha256(abi.encode(name, version));
 
     if (!records[key].initialized) {
       uint index = versions[name].push(version) - 1;
-      records[key] = Record(true, name, version, account, owner, bindings, index);
+      records[key] = Record(true, name, version, account, index);
 
       emit VersionAdded(name, version);
     } else {
-      records[key] = Record(true, name, version, account, owner, bindings, records[key].index);
+      records[key] = Record(true, name, version, account, records[key].index);
 
       emit VersionUpdated(name, version);
     }
@@ -53,5 +50,13 @@ contract Registry is Ownable {
       delete records[key];
       delete versions[name][index];
     }
+  }
+
+  function record(string memory name, string memory version) public view returns(Record memory) {
+    require(bytes(name).length != 0, "Registry: name is required");
+    require(bytes(version).length != 0, "Registry: version is required");
+
+    bytes32 key = sha256(abi.encode(name, version));
+    return records[key];
   }
 }

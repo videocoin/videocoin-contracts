@@ -1,4 +1,6 @@
 const StakingManager = artifacts.require("StakingManager");
+const Registry = artifacts.require("Registry");
+const registrar = require('./registrar');
 
 module.exports = async function (deployer, network, accounts) {
   const twovids = web3.utils.toWei("2");
@@ -48,6 +50,8 @@ module.exports = async function (deployer, network, accounts) {
     slashFund,
     { from }
   );
+
+  await registrar.register(StakingManager, Registry);
 
   console.log("Done");
 };

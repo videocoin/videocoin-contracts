@@ -1,6 +1,8 @@
 const NativeBridge = artifacts.require("NativeBridge");
 const NativeProxy = artifacts.require("NativeProxy");
 const RemoteBridge = artifacts.require("RemoteBridge");
+const Registry = artifacts.require("Registry");
+const registrar = require('./registrar');
 
 module.exports = async function(deployer, network, accounts) {
   var native, remote;
@@ -21,6 +23,10 @@ module.exports = async function(deployer, network, accounts) {
 
   console.log(`Deploying ${RemoteBridge.contractName} from ${remote} on network: ${network}`);
   await deployer.deploy(RemoteBridge, { from: remote });
+
+  await registrar.register(NativeBridge, Registry);
+  await registrar.register(NativeProxy, Registry);
+  await registrar.register(RemoteBridge, Registry);
 
   console.log('Done');
 };
