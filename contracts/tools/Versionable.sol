@@ -11,10 +11,6 @@ pragma solidity >=0.4.21 <0.7.0;
 * Contracts will have to inherit this class.
 */
 contract Versionable {
-  string public version;
-
-  constructor() public {
-    // IMPORTANT: do not change this value
-    version = "stub 0.0.0";
-  }
+  // IMPORTANT: do not change this value
+  string public constant version = "stub 9999.9999.9999";
 }

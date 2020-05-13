@@ -9,7 +9,7 @@ def main(value, path):
     
     path = Path(path)
     text = path.read_text()
-    text = text.replace(pattern.format('stub 0.0.0'), pattern.format(value))
+    text = text.replace(pattern.format('stub 9999.9999.9999'), pattern.format(value))
     path.write_text(text)
 
 if __name__ == "__main__":

@@ -1,6 +1,6 @@
 FROM node:10
 
-ARG tag="stub 0.0.0"
+ARG tag="stub 9999.9999.9999"
 
 WORKDIR /contracts
 
