@@ -14,8 +14,8 @@
   "license": "ISC",
   "dependencies": {
     "@truffle/hdwallet-provider": "^1.0.34",
-    "openzeppelin-solidity": "^2.5.1",
-    "ethereumjs-wallet": "^0.6.3"
+    "ethereumjs-wallet": "^0.6.3",
+    "openzeppelin-solidity": "^2.5.1"
   },
   "devDependencies": {
     "mocha-logger": "^1.0.6",
