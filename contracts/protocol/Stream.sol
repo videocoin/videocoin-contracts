@@ -60,8 +60,6 @@ contract Stream is Escrow {
   mapping (uint256 => uint256[]) public wattages;
   uint256[] private _inChunkIds;
 
-  mapping (uint256 => uint256) public serviceShares;
-
   mapping (uint256 => OutStream) public outStreams;
   uint256[] private _profiles;
 
@@ -155,45 +153,24 @@ contract Stream is Escrow {
     require(proofQueue.head < proofQueue.proofs.length);
 
     address payable miner = proofQueue.proofs[proofQueue.head].miner;
-    address payable service;
-    uint256 percent;
-    (service, percent) = ManagerInterface(manager).getServiceAccount();
+    uint256 percent = ManagerInterface(manager).getServiceSharePercent();
 
-    uint256 amount = wattages[chunkId][outStream.index];
+    uint256 minerAmount = wattages[chunkId][outStream.index];
 
     // calculate service share
-    if (service != address(0) && percent != 0) {
-      uint256 serviceShare = SafeMath.div(SafeMath.mul(amount, percent), 100);
-      amount -= serviceShare;
-      serviceShares[chunkId] = serviceShare;
-    }
+    uint256 serviceAmount = SafeMath.div(SafeMath.mul(minerAmount, percent), 100);
+    // calculate miner share
+    minerAmount = SafeMath.sub(minerAmount, serviceAmount);
 
     // TODO: should fund the miner`s account at the staking manager for rewards distribution
     // TODO: also, when a proof is validated we should update transcoder`s reputation
-    bool funded = fundAccount(miner, amount);
+    bool funded = fundAccount(miner, minerAmount, serviceAmount);
     if(!funded) return;
 
     proofQueue.validator = msg.sender;
     outStream.validatedChunks++;
 
     emit ChunkProofValidated(profile, chunkId);
-  }
-
-  /**
-  * @notice Publishers use the method to collect fee from chunk.
-  * @dev Requires: validateProof called before.
-  * @param chunkId The chunk id for which we collect the share.
-  */
-  function collectServiceShare(uint256 chunkId) public onlyPublisher {
-    address payable service;
-    uint256 percent;
-    (service, percent) = ManagerInterface(manager).getServiceAccount();
-
-    uint256 amount = serviceShares[chunkId];
-    bool funded = fundAccount(service, amount);
-    if(!funded) return;
-
-    emit ServiceShareCollected(service, chunkId, amount);
   }
 
   /**

@@ -48,21 +48,26 @@ contract Escrow {
 
   /**
   * @notice Transfers funds to the given address
-  * @param account Account to be funded.
-  * @param amount Amount to be funded.
+  * @dev We are supressing actual transfer. Now function only emits events
+  * @param account Account to be logged on the blockchain.
+  * @param accountAmount Amount to be logged on the blockchain.
+  * @param serviceAmount Amount to be logged on the blockchain.
   * @return True if account was funded; false otherwise.
   */
-  function fundAccount(address payable account, uint256 amount) internal returns (bool) {
+  function fundAccount(address payable account, uint256 accountAmount, uint256 serviceAmount) internal returns (bool) {
     uint256 balance = address(this).balance;
+    uint256 amount = accountAmount + serviceAmount;
 
     if(balance == 0 || balance < amount) {
       emit OutOfFunds();
       return false;
     }
 
-    account.transfer(amount);
+    // Supress actual transfer
+    // account.transfer(amount);
 
-    emit AccountFunded(account, amount);
+    emit AccountFunded(account, accountAmount);
+    emit ServiceFunded(serviceAmount);
 
     return true;
   }
@@ -71,5 +76,6 @@ contract Escrow {
   event Deposited(uint256 indexed weiAmount);
   event Refunded(uint256 weiAmount);
   event AccountFunded(address indexed account, uint256 weiAmount);
+  event ServiceFunded(uint256 weiAmount); 
   event OutOfFunds();
 }

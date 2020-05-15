@@ -35,10 +35,11 @@ contract StreamManager is ManagerInterface, Ownable {
   mapping (uint256 => StreamRequest) public requests;
   mapping (uint256 => string) public profiles;
 
-  address payable public serviceAccount;
   uint256 public serviceSharePercent;
 
   constructor() public {
+    // default value
+    serviceSharePercent = 20;
     version = "0.0.7";
     // owner is one of the publisher for backward compatibility.
     addPublisher(msg.sender);
@@ -277,26 +278,23 @@ contract StreamManager is ManagerInterface, Ownable {
   }
 
   /**
-  * @notice Owner can update service account.
-  * @param s service account address.
-  * @param percent service share in percents.
+  * @notice Owner can update service share percent.
+  * @param percent service share percents.
   */
-  function setServiceAccount(address payable s, uint256 percent) public onlyOwner {
-    require(s != address(0), "StreamManager: incorrect account value");
+  function setServiceSharePercent(uint256 percent) public onlyOwner {
     require(0 <= percent && percent <= 100, "StreamManager: percent should be in [0; 100] range");
 
-    serviceAccount = s;
     serviceSharePercent = percent;
 
-    emit ServiceAccountUpdated(serviceAccount, serviceSharePercent);
+    emit ServiceSharePercentUpdated(serviceSharePercent);
   }
 
   /**
-  * @notice Query service account and share percent.
-  * @return Service address, service share percent uint256.
+  * @notice Query service share percent.
+  * @return Service share percent uint256.
   */
-  function getServiceAccount() public view returns(address payable, uint256) {
-    return (serviceAccount, serviceSharePercent);
+  function getServiceSharePercent() public view returns(uint256) {
+    return serviceSharePercent;
   }
 
   /// modifiers
@@ -328,5 +326,5 @@ contract StreamManager is ManagerInterface, Ownable {
   event InputChunkAdded(uint256 indexed streamId, uint256 indexed chunkId);
   event StreamEnded(uint256 indexed streamId, address indexed caller);
 
-  event ServiceAccountUpdated(address payable indexed account, uint256 indexed percent);
+  event ServiceSharePercentUpdated(uint256 indexed percent);
 }

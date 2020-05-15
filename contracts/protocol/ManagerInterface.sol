@@ -33,8 +33,8 @@ contract ManagerInterface {
   function getVersion() public view returns (string memory);
 
   /**
-  * @notice Query service account and share percent.
-  * @return Service address, service share percent uint256.
+  * @notice Query service share percent.
+  * @return Service share percent uint256.
   */
-  function getServiceAccount() public view returns(address payable, uint256);
+  function getServiceSharePercent() public view returns(uint256);
 }
