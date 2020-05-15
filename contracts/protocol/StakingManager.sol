@@ -26,6 +26,7 @@ contract StakingManager is Ownable {
     Slash[] slashes;                    // list of slashes values
     address[] delegators;               // array of all delegators that staked to a transcoders
     bool jailed;                        // flag for jailing transcoder for misbehaving
+    uint256 effectiveMinSelfStake;      // minSelfStake at the time of transcoder registration.
   }
 
   /// @dev Represents a delegator's current state
@@ -163,6 +164,7 @@ contract StakingManager is Ownable {
 
     transcoder.timestamp = now;
     transcoder.rewardRate = rate;
+    transcoder.effectiveMinSelfStake = minSelfStake;
     transcodersArray.push(addr);
     emit TranscoderRegistered(addr);
   }
@@ -506,7 +508,7 @@ contract StakingManager is Ownable {
       return TranscoderState.UNBONDED;
 
     if(now - transcoder.timestamp >= transcoderApprovalPeriod) {
-      if (delegator.bondedAmounts[transcoderAddr] >= minSelfStake) {
+      if (delegator.bondedAmounts[transcoderAddr] >= transcoder.effectiveMinSelfStake) {
         return TranscoderState.BONDED;
       }
       else {

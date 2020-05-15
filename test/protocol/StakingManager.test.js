@@ -129,6 +129,17 @@ contract('StakingManager', (
       const isBondedTranscoder = await this.stakingManager.getTranscoderState(transcoder);
       isBondedTranscoder.should.not.be.bignumber.equal(TranscoderState.BONDED);
     });
+
+   it('should be BONDED after minSelfStake increase', async() => {
+      await addSeconds(approvalPeriod);
+      var isBondedTranscoder = await this.stakingManager.getTranscoderState(transcoder);
+      isBondedTranscoder.should.not.be.bignumber.equal(TranscoderState.BONDED);
+
+      await this.stakingManager.setSelfMinStake(tenvids, {from: manager});
+
+      isBondedTranscoder = await this.stakingManager.getTranscoderState(transcoder);
+      isBondedTranscoder.should.not.be.bignumber.equal(TranscoderState.BONDED);
+   });
   });
 
   describe('Delegations', () => {
