@@ -60,6 +60,8 @@ contract Stream is Escrow {
   mapping (uint256 => uint256[]) public wattages;
   uint256[] private _inChunkIds;
 
+  mapping (uint256 => uint256) public serviceShares;
+
   mapping (uint256 => OutStream) public outStreams;
   uint256[] private _profiles;
 
@@ -153,8 +155,19 @@ contract Stream is Escrow {
     require(proofQueue.head < proofQueue.proofs.length);
 
     address payable miner = proofQueue.proofs[proofQueue.head].miner;
+    address payable service;
+    uint256 percent;
+    (service, percent) = ManagerInterface(manager).getServiceAccount();
 
     uint256 amount = wattages[chunkId][outStream.index];
+
+    // calculate service share
+    if (service != address(0) && percent != 0) {
+      uint256 serviceShare = SafeMath.div(SafeMath.mul(amount, percent), 100);
+      amount -= serviceShare;
+      serviceShares[chunkId] = serviceShare;
+    }
+
     // TODO: should fund the miner`s account at the staking manager for rewards distribution
     // TODO: also, when a proof is validated we should update transcoder`s reputation
     bool funded = fundAccount(miner, amount);
@@ -164,6 +177,23 @@ contract Stream is Escrow {
     outStream.validatedChunks++;
 
     emit ChunkProofValidated(profile, chunkId);
+  }
+
+  /**
+  * @notice Publishers use the method to collect fee from chunk.
+  * @dev Requires: validateProof called before.
+  * @param chunkId The chunk id for which we collect the share.
+  */
+  function collectServiceShare(uint256 chunkId) public onlyPublisher {
+    address payable service;
+    uint256 percent;
+    (service, percent) = ManagerInterface(manager).getServiceAccount();
+
+    uint256 amount = serviceShares[chunkId];
+    bool funded = fundAccount(service, amount);
+    if(!funded) return;
+
+    emit ServiceShareCollected(service, chunkId, amount);
   }
 
   /**
@@ -403,6 +433,15 @@ contract Stream is Escrow {
     _;
   }
 
+  /**
+  * @notice Modifier for methods only callable by publishers
+  * @dev The stream manager holds & manages the publisher list.
+  */
+  modifier onlyPublisher() {
+    require(ManagerInterface(manager).isPublisher(msg.sender));
+    _;
+  }
+
   /// @notice Modifier for methods only callable by the manager contract
   modifier onlyManager() {
     require(msg.sender == manager);
@@ -413,4 +452,5 @@ contract Stream is Escrow {
   event ChunkProofSubmited(uint256 indexed chunkId, uint256 indexed profile, uint256 indexed idx);
   event ChunkProofValidated(uint256 indexed profile, uint256 indexed chunkId);
   event ChunkProofScrapped(uint256 indexed profile, uint256 indexed chunkId, uint256 indexed idx);
+  event ServiceShareCollected(address payable indexed service, uint256 indexed chunckId, uint256 amount);
 }

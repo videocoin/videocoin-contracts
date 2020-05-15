@@ -35,13 +35,16 @@ contract StreamManager is ManagerInterface, Ownable {
   mapping (uint256 => StreamRequest) public requests;
   mapping (uint256 => string) public profiles;
 
+  address payable public serviceAccount;
+  uint256 public serviceSharePercent;
+
   constructor() public {
     version = "0.0.7";
     // owner is one of the publisher for backward compatibility.
     addPublisher(msg.sender);
   }
 
-   /**
+  /**
   * @notice Returns the contracts` version.
   * @dev Streams hvae the same version with the Manager contracts that created them\.
   * @return Version string.
@@ -273,6 +276,29 @@ contract StreamManager is ManagerInterface, Ownable {
     emit RefundRevoked(streamId);
   }
 
+  /**
+  * @notice Owner can update service account.
+  * @param s service account address.
+  * @param percent service share in percents.
+  */
+  function setServiceAccount(address payable s, uint256 percent) public onlyOwner {
+    require(s != address(0), "StreamManager: incorrect account value");
+    require(0 <= percent && percent <= 100, "StreamManager: percent should be in [0; 100] range");
+
+    serviceAccount = s;
+    serviceSharePercent = percent;
+
+    emit ServiceAccountUpdated(serviceAccount, serviceSharePercent);
+  }
+
+  /**
+  * @notice Query service account and share percent.
+  * @return Service address, service share percent uint256.
+  */
+  function getServiceAccount() public view returns(address payable, uint256) {
+    return (serviceAccount, serviceSharePercent);
+  }
+
   /// modifiers
 
   /**
@@ -301,4 +327,6 @@ contract StreamManager is ManagerInterface, Ownable {
 
   event InputChunkAdded(uint256 indexed streamId, uint256 indexed chunkId);
   event StreamEnded(uint256 indexed streamId, address indexed caller);
+
+  event ServiceAccountUpdated(address payable indexed account, uint256 indexed percent);
 }
