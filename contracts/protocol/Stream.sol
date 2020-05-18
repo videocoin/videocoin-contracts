@@ -158,9 +158,9 @@ contract Stream is Escrow {
     uint256 minerAmount = wattages[chunkId][outStream.index];
 
     // calculate service share
-    uint256 serviceAmount = SafeMath.div(SafeMath.mul(minerAmount, percent), 100);
+    uint256 serviceAmount = minerAmount.mul(percent).div(100);
     // calculate miner share
-    minerAmount = SafeMath.sub(minerAmount, serviceAmount);
+    minerAmount = minerAmount.sub(serviceAmount);
 
     // TODO: should fund the miner`s account at the staking manager for rewards distribution
     // TODO: also, when a proof is validated we should update transcoder`s reputation

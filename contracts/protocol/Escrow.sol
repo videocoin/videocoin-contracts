@@ -63,7 +63,8 @@ contract Escrow {
       return false;
     }
 
-    // Supress actual transfer
+    // To avoid VID leaking to miner accounts using current protocol implementation
+    // we have to supress actual transfer. So from now this function only emits events
     // account.transfer(amount);
 
     emit AccountFunded(account, accountAmount);
