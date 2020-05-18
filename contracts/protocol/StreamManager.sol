@@ -38,7 +38,10 @@ contract StreamManager is ManagerInterface, Ownable {
   uint256 public serviceSharePercent;
 
   constructor() public {
-    // default value
+    // serviceSharePercent default value is set to 20 as it was agreed.
+    // Adding service shares breaks initial protocol implementation, 
+    // supressing reward transfer to miners. Protocol philosofy needs to 
+    // be reviewed and updated after everest release.
     serviceSharePercent = 20;
     version = "0.0.7";
     // owner is one of the publisher for backward compatibility.
