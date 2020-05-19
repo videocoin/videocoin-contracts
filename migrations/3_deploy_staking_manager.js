@@ -1,10 +1,6 @@
 const StakingManager = artifacts.require("StakingManager");
 
 module.exports = async function (deployer, network, accounts) {
-  const twovids = web3.utils.toWei("2");
-  const sixvids = web3.utils.toWei("6");
-  const tenvids = web3.utils.toWei("10");
-
   var from;
   var minDelegation, minSelfStake;
   var approvalPeriod, unbondingPeriod;
@@ -13,14 +9,23 @@ module.exports = async function (deployer, network, accounts) {
     // Key order is defined in everest provider
     from = accounts[1];
 
-    minDelegation = twovids;
-    minSelfStake = tenvids;
-    approvalPeriod = 100;
-    unbondingPeriod = 100;
+    const directStakeMinAmount = web3.utils.toWei("333333");
+    const day = 60 * 60 * 24;
+    const bondingPeriod = 10 * day;
+    const unbondingPeriod = 21 * day;
+    const delegatedStake = web3.utils.toWei("1");
+
+    minDelegation = delegatedStake;
+    minSelfStake = directStakeMinAmount;
+    approvalPeriod = bondingPeriod;
+    unbondingPeriod = unbondingPeriod;
     slashRate = 0;
     slashFund = "0x0000000000000000000000000000000000000000";
   } else {
     from = accounts[0];
+
+    const sixvids = web3.utils.toWei("6");
+    const tenvids = web3.utils.toWei("10");
 
     minDelegation = sixvids;
     minSelfStake = tenvids;
