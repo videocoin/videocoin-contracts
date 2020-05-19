@@ -153,11 +153,18 @@ contract Stream is Escrow {
     require(proofQueue.head < proofQueue.proofs.length);
 
     address payable miner = proofQueue.proofs[proofQueue.head].miner;
+    uint256 percent = ManagerInterface(manager).getServiceSharePercent();
 
-    uint256 amount = wattages[chunkId][outStream.index];
+    uint256 minerAmount = wattages[chunkId][outStream.index];
+
+    // calculate service share
+    uint256 serviceAmount = minerAmount.mul(percent).div(100);
+    // calculate miner share
+    minerAmount = minerAmount.sub(serviceAmount);
+
     // TODO: should fund the miner`s account at the staking manager for rewards distribution
     // TODO: also, when a proof is validated we should update transcoder`s reputation
-    bool funded = fundAccount(miner, amount);
+    bool funded = fundAccount(miner, minerAmount, serviceAmount);
     if(!funded) return;
 
     proofQueue.validator = msg.sender;
@@ -403,6 +410,15 @@ contract Stream is Escrow {
     _;
   }
 
+  /**
+  * @notice Modifier for methods only callable by publishers
+  * @dev The stream manager holds & manages the publisher list.
+  */
+  modifier onlyPublisher() {
+    require(ManagerInterface(manager).isPublisher(msg.sender));
+    _;
+  }
+
   /// @notice Modifier for methods only callable by the manager contract
   modifier onlyManager() {
     require(msg.sender == manager);
@@ -413,4 +429,5 @@ contract Stream is Escrow {
   event ChunkProofSubmited(uint256 indexed chunkId, uint256 indexed profile, uint256 indexed idx);
   event ChunkProofValidated(uint256 indexed profile, uint256 indexed chunkId);
   event ChunkProofScrapped(uint256 indexed profile, uint256 indexed chunkId, uint256 indexed idx);
+  event ServiceShareCollected(address payable indexed service, uint256 indexed chunckId, uint256 amount);
 }
