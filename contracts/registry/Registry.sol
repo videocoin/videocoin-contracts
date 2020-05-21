@@ -10,6 +10,7 @@ contract Registry is Ownable {
     string  name;
     string  version;
     address account;
+    address owner;
     uint    index;
   }
 
@@ -19,7 +20,7 @@ contract Registry is Ownable {
   event VersionAdded(string indexed name, string indexed version);
   event VersionUpdated(string indexed name, string indexed versions);
 
-  function update(string memory name, string memory version, address account) public onlyOwner {
+  function update(string memory name, string memory version, address account, address owner) public onlyOwner {
     require(bytes(name).length != 0, "Registry: name is required");
     require(bytes(version).length != 0, "Registry: version is required");
     require(account != address(0), "Registry: account can't be zero");
@@ -28,11 +29,11 @@ contract Registry is Ownable {
 
     if (!records[key].initialized) {
       uint index = versions[name].push(version) - 1;
-      records[key] = Record(true, name, version, account, index);
+      records[key] = Record(true, name, version, account, owner, index);
 
       emit VersionAdded(name, version);
     } else {
-      records[key] = Record(true, name, version, account, records[key].index);
+      records[key] = Record(true, name, version, account, owner, records[key].index);
 
       emit VersionUpdated(name, version);
     }

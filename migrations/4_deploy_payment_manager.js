@@ -1,6 +1,6 @@
 const PaymentManager = artifacts.require("PaymentManager");
 const Registry = artifacts.require("Registry");
-const registrar = require('./registrar');
+const registrar = require('../tools/utils/registrar');
 
 module.exports = async function (deployer, network, accounts) {
   var from;

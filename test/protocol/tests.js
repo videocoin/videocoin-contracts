@@ -6,7 +6,7 @@ const truffleAssert = require("truffle-assertions");
 const BN = web3.utils.BN;
 require("chai").use(require("chai-as-promised")).should();
 
-const { ensuresException, randInt, ZERO_ADDRESS } = require("../utils");
+const { ensuresException, randInt, ZERO_ADDRESS } = require("../../tools/utils");
 
 async function createNewStream(manager, client, managerAcc, profiles, chunks) {
   const id = randInt();
