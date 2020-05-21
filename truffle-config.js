@@ -59,7 +59,7 @@ module.exports = {
         );
       },
       gas: 4000000,
-      network_id: 87654,
+      network_id: "*",
     },
   },
 

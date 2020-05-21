@@ -35,12 +35,19 @@ contract StreamManager is ManagerInterface, Ownable, Versionable {
   mapping (uint256 => StreamRequest) public requests;
   mapping (uint256 => string) public profiles;
 
+  uint256 public serviceSharePercent;
+
   constructor() public {
+    // serviceSharePercent default value is set to 20 as it was agreed.
+    // Adding service shares breaks initial protocol implementation, 
+    // supressing reward transfer to miners. Protocol philosofy needs to 
+    // be reviewed and updated after everest release.
+    serviceSharePercent = 20;
     // owner is one of the publisher for backward compatibility.
     addPublisher(msg.sender);
   }
 
-   /**
+  /**
   * @notice Returns the contracts` version.
   * @dev Streams hvae the same version with the Manager contracts that created them\.
   * @return Version string.
@@ -272,6 +279,26 @@ contract StreamManager is ManagerInterface, Ownable, Versionable {
     emit RefundRevoked(streamId);
   }
 
+  /**
+  * @notice Owner can update service share percent.
+  * @param percent service share percents.
+  */
+  function setServiceSharePercent(uint256 percent) public onlyOwner {
+    require(0 <= percent && percent <= 100, "StreamManager: percent should be in [0; 100] range");
+
+    serviceSharePercent = percent;
+
+    emit ServiceSharePercentUpdated(serviceSharePercent);
+  }
+
+  /**
+  * @notice Query service share percent.
+  * @return Service share percent uint256.
+  */
+  function getServiceSharePercent() public view returns(uint256) {
+    return serviceSharePercent;
+  }
+
   /// modifiers
 
   /**
@@ -300,4 +327,6 @@ contract StreamManager is ManagerInterface, Ownable, Versionable {
 
   event InputChunkAdded(uint256 indexed streamId, uint256 indexed chunkId);
   event StreamEnded(uint256 indexed streamId, address indexed caller);
+
+  event ServiceSharePercentUpdated(uint256 indexed percent);
 }

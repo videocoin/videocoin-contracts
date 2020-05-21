@@ -10,18 +10,31 @@ contract ManagerInterface {
   * @param streamId ID of stream which we query.
   * @return True if stream is refundable, false otherwise.
   */
-    function refundAllowed(uint256 streamId) public view returns (bool);
+  function refundAllowed(uint256 streamId) public view returns (bool);
 
   /**
   * @notice Query whether a certain address is a validator.
   * @param v Adress of validator to be queried.
   * @return True if address is validator, false otherwise.
   */
-    function isValidator(address v) public view returns (bool);
+  function isValidator(address v) public view returns (bool);
+
+  /**
+  * @notice Query whether a certain address is a publisher.
+  * @param v Adress of publisher to be queried.
+  * @return True if address is publisher, false otherwise.
+  */
+  function isPublisher(address v) public view returns (bool);
 
   /**
   * @notice Query contract version.
   * @return Version string.
   */
-    function getVersion() public view returns (string memory);
+  function getVersion() public view returns (string memory);
+
+  /**
+  * @notice Query service share percent.
+  * @return Service share percent uint256.
+  */
+  function getServiceSharePercent() public view returns(uint256);
 }

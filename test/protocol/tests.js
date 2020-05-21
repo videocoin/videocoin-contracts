@@ -924,35 +924,33 @@ contract(
         this.mStream = await stream.at(streamAddr);
       });
 
-      it("should be able to allocate funds to miner", async () => {
+      it("should be able to emit accountFunded and serviceFunded events with right shares", async () => {
+        const percent = new BN(await this.mManager.getServiceSharePercent());
+        const serviceShare = wattage.mul(percent).div(new BN(100));
+        const minerShare = wattage.sub(serviceShare);
+
         // Given a miner submited a proof
         await this.mStream.submitProof(profile, chunkId, proof, outChunkId, {
           from: miner,
         });
-        const prevBalance = new BN(await web3.eth.getBalance(miner));
 
         // When the proof is validated
         const res = await this.mStream.validateProof(profile, chunkId, {
           from: validator,
         });
 
-        // Then the miner`s new balance whould reflect the wattage/reward
-        const balance = new BN(await web3.eth.getBalance(miner));
-        wattage.eq(balance.sub(prevBalance)).should.be.true;
-
-        // And the remaining balance allocated for the minet should be 0
-        const remaining = new BN(
-          await web3.eth.getBalance(this.mStream.address)
-        );
-        remaining.eq(new BN(0)).should.be.true;
-
-        // And the AccountFunded event is emitted with correct params
+        // AccountFunded event is emitted with correct params
         truffleAssert.eventEmitted(res, "AccountFunded", (ev) => {
-          return ev.weiAmount.eq(wattage) && ev.account == miner;
+          return ev.weiAmount.eq(minerShare) && ev.account == miner;
+        });
+
+        // And the ServiceFunded event is emitted with correct params
+        truffleAssert.eventEmitted(res, "ServiceFunded", (ev) => {
+          return ev.weiAmount.eq(serviceShare);
         });
       });
 
-      it("should substract funds from stream contract when paying wattage reward", async () => {
+      it("should keep funds in stream contract when emiting wattage reward event", async () => {
         // Given a miner submited a proof
         const initStreamBalance = new BN(
           await web3.eth.getBalance(this.mStream.address)
@@ -964,11 +962,11 @@ contract(
         // When the proof is validated
         await this.mStream.validateProof(profile, chunkId, { from: validator });
 
-        // The stream/escrow balance whould be subtracted accordingly
+        // The stream/escrow balance whould be the same
         const streamBalance = new BN(
           await web3.eth.getBalance(this.mStream.address)
         );
-        initStreamBalance.sub(streamBalance).eq(wattage).should.be.true;
+        initStreamBalance.eq(streamBalance).should.be.true;
       });
 
       it("should allow refund when called by manager", async () => {
@@ -1109,6 +1107,7 @@ contract(
         prevBalance.add(value).eq(balance).should.be.true;
       });
 
+/*
       it("should emit OutOfFunds event when necessary", async () => {
         // Given that we emptied the Stream account of funds (2 proofs, 1 validated)
         let chunk = chunks[0];
@@ -1136,7 +1135,7 @@ contract(
           return true;
         });
       });
-
+*/
       it("(bug) should not allow client to empty escrow if a proof he sent was validated", async () => {
         // Given that we have a stream contract deployed
         const value = new BN("10").pow(new BN("18")); // 1 VID
@@ -1168,7 +1167,288 @@ contract(
 
         // Then the stream/escrow only awards the minning award and it`s not emptied (was a bug)
         const balance = new BN(await web3.eth.getBalance(this.mStream.address));
-        balance.add(wattage).eq(prevBalance).should.be.true;
+        balance.eq(prevBalance).should.be.true;
+        balance.eq(new BN("0")).should.be.false;
+      });
+    });
+    //========================================================================
+    //========================================================================
+    describe("test Stream payment features with publisher", () => {
+      const profiles = ["profile1", "profile2", "profile3"];
+      const wattages = wattagesArr.slice(0, profiles.length);
+      const chunks = [new BN(1), new BN(2), new BN(3)];
+      const chunkId = 1,
+        proof = 1,
+        outChunkId = 1;
+      const profile = web3.utils.keccak256(profiles[0]);
+
+      beforeEach("create stream", async () => {
+        const value = new BN("10").pow(new BN("16")); // funding tream with just 0.01 VID
+        await this.mManager.addPublisher(publisher, { from: managerAcc });
+        await this.mManager.requestStream(streamId, profiles, { from: client });
+        await this.mManager.approveStreamCreation(streamId, {
+          from: publisher,
+        });
+
+        const res = await this.mManager.createStream(streamId, {
+          from: client,
+          value,
+        });
+        await this.mManager.addValidator(validator, { from: managerAcc });
+        await this.mManager.addInputChunkId(streamId, chunkId, wattages, {
+          from: publisher,
+        });
+
+        const streamAddr = res.receipt.logs[0].args.streamAddress;
+        this.mStream = await stream.at(streamAddr);
+      });
+// Supressing these tests as actual transfer is supressed
+/*
+      it("should be able to allocate funds to miner", async () => {
+        // Given a miner submited a proof
+        await this.mStream.submitProof(profile, chunkId, proof, outChunkId, {
+          from: miner,
+        });
+        const prevBalance = new BN(await web3.eth.getBalance(miner));
+
+        // When the proof is validated
+        const res = await this.mStream.validateProof(profile, chunkId, {
+          from: validator,
+        });
+
+        // Then the miner`s new balance whould reflect the wattage/reward
+        const balance = new BN(await web3.eth.getBalance(miner));
+        wattage.eq(balance.sub(prevBalance)).should.be.true;
+
+        // And the remaining balance allocated for the minet should be 0
+        const remaining = new BN(
+          await web3.eth.getBalance(this.mStream.address)
+        );
+        remaining.eq(new BN(0)).should.be.true;
+
+        // And the AccountFunded event is emitted with correct params
+        truffleAssert.eventEmitted(res, "AccountFunded", (ev) => {
+          return ev.weiAmount.eq(wattage) && ev.account == miner;
+        });
+      });
+
+      it("should substract funds from stream contract when paying wattage reward", async () => {
+        // Given a miner submited a proof
+        const initStreamBalance = new BN(
+          await web3.eth.getBalance(this.mStream.address)
+        );
+        await this.mStream.submitProof(profile, chunkId, proof, outChunkId, {
+          from: miner,
+        });
+
+        // When the proof is validated
+        await this.mStream.validateProof(profile, chunkId, { from: validator });
+
+        // The stream/escrow balance whould be subtracted accordingly
+        const streamBalance = new BN(
+          await web3.eth.getBalance(this.mStream.address)
+        );
+        initStreamBalance.sub(streamBalance).eq(wattage).should.be.true;
+      });
+*/
+      it("should allow refund when called by publisher", async () => {
+        // Given that we have a stream
+        const streamId = await this.mStream.id();
+
+        // When we allow a refund for it
+        const res = await this.mManager.allowRefund(streamId, {from: publisher});
+
+        // Then the stream/request shows up as refundable
+        let allowed = await this.mManager.refundAllowed(streamId);
+        allowed.should.be.true;
+
+        // And the RefundAllowed event is emitted with the correct params
+        truffleAssert.eventEmitted(res, "RefundAllowed", (ev) => {
+          return ev.streamId.eq(streamId);
+        });
+      });
+
+      it("should refund client if allowed by publisher", async () => {
+        // Given that we allowed a refund for the stream
+        const streamId = await this.mStream.id();
+        await this.mManager.allowRefund(streamId, {from: publisher});
+
+        const prevBalance = new BN(await web3.eth.getBalance(client));
+        let streamBalance = new BN(
+          await web3.eth.getBalance(this.mStream.address)
+        );
+
+        // When the client calls refund
+        let res = await this.mStream.refund();
+
+        // Then the new client balance is added the refund amount
+        const balance = new BN(await web3.eth.getBalance(client));
+        balance.eq(prevBalance.add(streamBalance)).should.be.true;
+
+        // And the stream balance should be empty
+        streamBalance = new BN(await web3.eth.getBalance(this.mStream.address));
+        streamBalance.eq(new BN(0)).should.be.true;
+
+        // And the AccountFunded event is emitted with correct params
+        truffleAssert.eventEmitted(res, "Refunded", (ev) => {
+          return balance.eq(prevBalance.add(ev.weiAmount));
+        });
+      });
+
+      it("should refund client if stream is done", async () => {
+        // Given that we have a stream (one chunk & one profile)
+        const newProfiles = ["new profile"];
+        const wattages = wattagesArr.slice(0, newProfiles.length);
+        const newChunks = [new BN(1)];
+        let { stream, streamId } = await createNewStream(
+          this.mManager,
+          client,
+          publisher,
+          newProfiles,
+          newChunks
+        );
+        this.mStream = stream;
+
+        // When we provide proofs for all the chunks & profiles, i.e. fully transcode the stream
+        // and the stream has ended
+        const chunkId = newChunks[0],
+          proof = 1,
+          outChunkId = 1;
+        await this.mManager.addInputChunkId(streamId, chunkId, wattages, {
+          from: publisher,
+        });
+        const profile = web3.utils.keccak256(newProfiles[0]);
+        await this.mStream.submitProof(profile, chunkId, proof, outChunkId, {
+          from: miner,
+        });
+        await this.mStream.validateProof(profile, chunkId, { from: validator });
+
+        streamId = await this.mStream.id();
+        await this.mManager.endStream(streamId, { from: client });
+
+        // Then the client is allowed to get the refund
+        const refundAllowed = await this.mStream.refundAllowed();
+        refundAllowed.should.be.true;
+      });
+
+      it("should not be able to refund a client if not allowed by manager or stream not done", async () => {
+        // Given that we have a fresh stream (refund not allowed)
+        try {
+          // When we try to refund it
+          await this.mStream.refund();
+          assert.fail();
+        } catch (e) {
+          // The operation is denied and the transaction is reversed
+          ensuresException(e);
+        }
+      });
+
+      it("should be able revoke a previously allowed refund", async () => {
+        // Given that we have allowed a refund
+        const streamId = await this.mStream.id();
+        await this.mManager.allowRefund(streamId);
+
+        // When we revoke refundunding
+        const res = await this.mManager.revokeRefund(streamId);
+
+        // Then the RefundRevoked event is emitted with the correct params
+        truffleAssert.eventEmitted(res, "RefundRevoked", (ev) => {
+          return ev.streamId.eq(streamId);
+        });
+
+        // And the request doesnt show up as refundable
+        allowed = await this.mManager.refundAllowed(streamId);
+        allowed.should.be.false;
+
+        // And we can can`t call refund
+        try {
+          await this.mStream.refund();
+          assert.fail();
+        } catch (e) {
+          ensuresException(e);
+        }
+      });
+
+      it("should be able to fund stream", async () => {
+        // Given that we have a stream
+        const value = new BN(100);
+        const prevBalance = new BN(
+          await web3.eth.getBalance(this.mStream.address)
+        );
+
+        // When we want to fund it with extra coins for wattages rewards
+        const res = await this.mStream.deposit({ from: anyone, value });
+
+        // Then the Deposited event is emitted with the correct params
+        truffleAssert.eventEmitted(res, "Deposited", (ev) => {
+          return ev.weiAmount.eq(value);
+        });
+
+        // And it`s balance shows the new deposit
+        const balance = new BN(await web3.eth.getBalance(this.mStream.address));
+        prevBalance.add(value).eq(balance).should.be.true;
+      });
+/*
+      it("should emit OutOfFunds event when necessary", async () => {
+        // Given that we emptied the Stream account of funds (2 proofs, 1 validated)
+        let chunk = chunks[0];
+
+        await this.mStream.submitProof(profile, chunk, proof, outChunkId, {
+          from: miner,
+        });
+        await this.mStream.validateProof(profile, chunk, { from: validator });
+
+        chunk = chunks[1];
+        await this.mManager.addInputChunkId(streamId, chunk, wattages, {
+          from: publisher,
+        });
+        await this.mStream.submitProof(profile, chunk, proof, outChunkId, {
+          from: miner,
+        });
+
+        // When trying to validate/reward a new proof
+        let res = await this.mStream.validateProof(profile, chunk, {
+          from: validator,
+        });
+
+        // Then the OutOfFunds event is emitted
+        truffleAssert.eventEmitted(res, "OutOfFunds", (ev) => {
+          return true;
+        });
+      });
+*/
+      it("(bug) should not allow client to empty escrow if a proof he sent was validated", async () => {
+        // Given that we have a stream contract deployed
+        const value = new BN("10").pow(new BN("18")); // 1 VID
+
+        const id = randInt();
+        await this.mManager.requestStream(id, profiles, { from: client });
+        await this.mManager.approveStreamCreation(id, { from: publisher });
+
+        const res = await this.mManager.createStream(id, {
+          from: client,
+          value,
+        });
+
+        const streamAddr = res.receipt.logs[0].args.streamAddress;
+        this.mStream = await stream.at(streamAddr);
+
+        const prevBalance = new BN(
+          await web3.eth.getBalance(this.mStream.address)
+        );
+
+        // When the client that requested the stream provides a proof and the proof gets validated
+        await this.mManager.addInputChunkId(id, chunkId, wattages, {
+          from: publisher,
+        });
+        await this.mStream.submitProof(profile, chunkId, proof, outChunkId, {
+          from: client,
+        });
+        await this.mStream.validateProof(profile, chunkId, { from: validator });
+
+        // Then the stream/escrow only awards the minning award and it`s not emptied (was a bug)
+        const balance = new BN(await web3.eth.getBalance(this.mStream.address));
+        balance.eq(prevBalance).should.be.true;
         balance.eq(new BN("0")).should.be.false;
       });
     });
