@@ -7,20 +7,16 @@ module.exports = async function (deployer, network, accounts) {
   var minDelegation, minSelfStake;
   var approvalPeriod, unbondingPeriod;
   var slashRate, slashFund;
-  if (network === 'everest') {
+  if (network === "everest") {
     // Key order is defined in everest provider
     from = accounts[1];
 
-    const directStakeMinAmount = web3.utils.toWei("333333");
     const day = 60 * 60 * 24;
-    const bondingPeriod = 10 * day;
-    const unbondingPeriod = 21 * day;
-    const delegatedStake = web3.utils.toWei("1");
 
-    minDelegation = delegatedStake;
-    minSelfStake = directStakeMinAmount;
-    approvalPeriod = bondingPeriod;
-    unbondingPeriod = unbondingPeriod;
+    minDelegation = web3.utils.toWei("1");
+    minSelfStake = web3.utils.toWei("333333");
+    approvalPeriod = 10 * day;
+    unbondingPeriod = 21 * day;
     slashRate = 0;
     slashFund = "0x0000000000000000000000000000000000000000";
   } else {
@@ -37,7 +33,9 @@ module.exports = async function (deployer, network, accounts) {
     slashFund = "0x0000000000000000000000000000000000000000";
   }
 
-  console.log(`Deploying ${StakingManager.contractName} from ${from} on network: ${network}`);
+  console.log(
+    `Deploying ${StakingManager.contractName} from ${from} on network: ${network}`
+  );
   console.log(`required stake:      ${minSelfStake}`);
   console.log(`required delegation: ${minDelegation}`);
   console.log(`approval period:     ${approvalPeriod}`);
