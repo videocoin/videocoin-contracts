@@ -7,7 +7,7 @@ require("chai")
   .use(require('chai-bn')(BN))
   .should();
 
-const { ZERO_BYTES32, ZERO_ADDRESS } = require("../utils");
+const { ZERO_BYTES32, ZERO_ADDRESS } = require("../../tools/utils");
 
 contract("payment-manager", ([managerAcc, signerAcc, maliciousAcc]) => {
   beforeEach("initialize contract", async () => {

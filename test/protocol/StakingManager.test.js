@@ -15,7 +15,7 @@ const {
   vidcoin,
   addSeconds,
   EVMError
-} = require('../utils');
+} = require('../../tools/utils');
 
 // can`t get the enum from contract w/ web3
 const TranscoderState = {
