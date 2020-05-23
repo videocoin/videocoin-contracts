@@ -13,13 +13,8 @@ contract Registry is Ownable {
     address owner;
   }
 
-  struct VersionInfo {
-    uint     length;
-    string[] list;
-  }
-
-  mapping (bytes32 => ContractInfo) public records;
-  mapping (string => VersionInfo) public versions; 
+  mapping (bytes32 => ContractInfo) _records;
+  mapping (string => string[]) _versions; 
 
   event RecordAdded(string indexed name, string indexed version);
   event RecordUpdated(string indexed name, string indexed versions);
@@ -31,15 +26,14 @@ contract Registry is Ownable {
 
     bytes32 key = sha256(abi.encode(name, version));
 
-    if (!records[key].initialized) {
-      versions[name].list.push(version);
-      versions[name].length = versions[name].list.length;
+    if (!_records[key].initialized) {
+      _versions[name].push(version);
 
-      records[key] = ContractInfo(true, name, version, account, owner);
+      _records[key] = ContractInfo(true, name, version, account, owner);
 
       emit RecordAdded(name, version);
     } else {
-      records[key] = ContractInfo(true, name, version, account, owner);
+      _records[key] = ContractInfo(true, name, version, account, owner);
 
       emit RecordUpdated(name, version);
     }
@@ -50,13 +44,12 @@ contract Registry is Ownable {
     require(bytes(version).length != 0, "Registry: version is required");
 
     bytes32 key = sha256(abi.encode(name, version));
-    return records[key];
+    return _records[key];
   }
 
-  function version(string memory name, uint index) public view returns(string memory) {
+  function versions(string memory name) public view returns(string[] memory) {
     require(bytes(name).length != 0, "Registry: name is required");
-    require(index < versions[name].list.length, "Registry: out of range");
 
-    return versions[name].list[index];
+    return _versions[name];
   }
 }
