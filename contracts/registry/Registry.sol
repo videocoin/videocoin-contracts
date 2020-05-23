@@ -52,4 +52,11 @@ contract Registry is Ownable {
     bytes32 key = sha256(abi.encode(name, version));
     return records[key];
   }
+
+  function version(string memory name, uint index) public view returns(string memory) {
+    require(bytes(name).length != 0, "Registry: name is required");
+    require(index < versions[name].list.length, "Registry: out of range");
+
+    return versions[name].list[index];
+  }
 }
