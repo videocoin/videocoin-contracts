@@ -11,6 +11,10 @@ const {
   mineNBlocks,
 } = require('./utils');
 
+const {
+  register
+} = require('./registrar');
+
 module.exports = {
   ZERO_ADDRESS,
   ZERO_BYTES32,
@@ -21,5 +25,6 @@ module.exports = {
   addDays, 
   addSeconds,
   mineBlock,
-  mineNBlocks
+  mineNBlocks,
+  register
 };
