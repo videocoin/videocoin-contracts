@@ -10,7 +10,6 @@ contract Registry is Ownable {
     string  name;
     string  version;
     address account;
-    address owner;
   }
 
   mapping (bytes32 => ContractInfo) _records;
@@ -19,7 +18,7 @@ contract Registry is Ownable {
   event RecordAdded(string indexed name, string indexed version);
   event RecordUpdated(string indexed name, string indexed versions);
 
-  function update(string memory name, string memory version, address account, address owner) public onlyOwner {
+  function update(string memory name, string memory version, address account) public onlyOwner {
     require(bytes(name).length != 0, "Registry: name is required");
     require(bytes(version).length != 0, "Registry: version is required");
     require(account != address(0), "Registry: account can't be zero");
@@ -29,11 +28,11 @@ contract Registry is Ownable {
     if (!_records[key].initialized) {
       _versions[name].push(version);
 
-      _records[key] = ContractInfo(true, name, version, account, owner);
+      _records[key] = ContractInfo(true, name, version, account);
 
       emit RecordAdded(name, version);
     } else {
-      _records[key] = ContractInfo(true, name, version, account, owner);
+      _records[key] = ContractInfo(true, name, version, account);
 
       emit RecordUpdated(name, version);
     }
