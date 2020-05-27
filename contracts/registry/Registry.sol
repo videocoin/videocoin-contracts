@@ -16,7 +16,7 @@ contract Registry is Ownable {
   mapping (string => string[]) _versions; 
 
   event RecordAdded(string indexed name, string indexed version);
-  event RecordUpdated(string indexed name, string indexed versions);
+  event RecordUpdated(string indexed name, string indexed version);
 
   function update(string memory name, string memory version, address account) public onlyOwner {
     require(bytes(name).length != 0, "Registry: name is required");

@@ -28,10 +28,9 @@ contract("registry", ([registryAcc, managerAcc]) => {
 
     it("should be able to add new record", async () => {
       const version = await this.manager.version();
-      const owner = await this.manager.owner();
       const name = "Payments";
       const address = this.manager.address;
-      const res = await this.registry.update(name, version, owner, address);
+      const res = await this.registry.update(name, version, address);
 
       // Then it should emit the required events
       truffleAssert.eventEmitted(res, "RecordAdded", (ev) => {
@@ -41,16 +40,16 @@ contract("registry", ([registryAcc, managerAcc]) => {
 
     it("should be able to update existing record", async () => {
       var version = await this.manager.version();
-      const owner = await this.manager.owner();
       const name = "Payments";
-      const address = this.manager.address;
-      const res = await this.registry.update(name, version, owner, address);
+      let address = this.manager.address;
+      await this.registry.update(name, version, address);
 
-      version = 'dummy 9.0.0';
+      address = "0x7C51F8f00047a9d31dF671d60902833E2d2eA97F";
+      const res = await this.registry.update(name, version, address);
 
       // Then it should emit the required event
       truffleAssert.eventEmitted(res, "RecordUpdated", (ev) => {
-        return ev.name == name && ev.version == version;
+        return ev.name == web3.utils.sha3(name) && ev.version == web3.utils.sha3(version)
       });
     });
 
