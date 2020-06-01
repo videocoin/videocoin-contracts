@@ -1,4 +1,4 @@
-const StakingBridge = artifacts.require("./StakingBridge.sol");
+const StakingEscrow = artifacts.require("./StakingEscrow.sol");
 const ERC20 = artifacts.require("./TestERC.sol");
 
 const truffleAssert = require("truffle-assertions");
@@ -9,51 +9,42 @@ require("chai")
   .should();
 
 
-contract("staking bridge", ([owner, minter, delegator, transcoder]) => {
+contract("staking escrow", ([owner, minter, delegator, transcoder, nonfunded]) => {
     beforeEach("deploy", async () => {
         this.token = await ERC20.new({ from: minter });
         await this.token.mint(delegator, toBN(1000), { from: minter });
-        this.bridge = await StakingBridge.new(this.token.address, { from: owner });
+        this.escrow = await StakingEscrow.new(this.token.address, { from: owner });
     });
 
     describe("test staking bridge", () => {
         it("should lock approved tokens", async () => {
             const amount = toBN(100);
-            await this.token.approve(this.bridge.address, amount, { from: delegator });
-            await this.bridge.lock(amount, transcoder, { from: delegator });
-            const balance = await this.token.balanceOf(this.bridge.address);
+            await this.token.increaseAllowance(this.escrow.address, amount, { from: delegator });
+            await this.escrow.transfer(transcoder, amount, { from: delegator });
+            const balance = await this.token.balanceOf(this.escrow.address);
             balance.toNumber().should.equal(amount.toNumber());
         });
 
-        it("should revert locking unapproved ", async () => {
+        it("should revert if not enough tokens", async () => {
             await truffleAssert.reverts(
-                this.bridge.lock(toBN(100), transcoder, { from: delegator })
+                this.escrow.transfer(transcoder, toBN(100), { from: nonfunded })
             );
         });
 
-        it("should be able to withdraw requested and unlocked tokens", async () => {
+        it("should be able to withdraw requested tokens", async () => {
             const amount = toBN(100);
-            await this.token.approve(this.bridge.address, amount, { from: delegator });
-            await this.bridge.lock(amount, transcoder, { from: delegator });
+            await this.token.increaseAllowance(this.escrow.address, amount, { from: delegator });
+            await this.escrow.transfer(transcoder, amount, { from: delegator });
+            await this.escrow.transferFrom(transcoder, delegator, amount, { from: delegator });
 
-            await this.bridge.request(amount, transcoder, { from: delegator });
-            await this.bridge.unlock(amount, delegator, transcoder, { from : owner });
-            await this.token.transferFrom(this.bridge.address, delegator, amount, { from: delegator });
-
-            const balance = await this.token.balanceOf(this.bridge.address);
+            const balance = await this.token.balanceOf(this.escrow.address);
             balance.toNumber().should.equal(0);
         });
 
-
-        it("should revert requesting more than locked ", async () => {
+        it("should revert withdrawing more than locked ", async () => {
             const amount = toBN(100);
-            await this.token.approve(this.bridge.address, amount, { from: delegator });
-            await this.bridge.lock(amount, transcoder, { from: delegator });
-
-            await this.bridge.request(amount, transcoder, { from: delegator });
-
             await truffleAssert.reverts(
-                this.bridge.request(toBN(200), transcoder, { from: delegator })
+                this.escrow.transferFrom(transcoder, delegator, amount, { from: delegator })
             );
         });
     });
