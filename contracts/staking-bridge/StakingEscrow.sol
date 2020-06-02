@@ -11,7 +11,7 @@ contract StakingEscrow {
   event Locked(address indexed delegator, address indexed delegatee, uint256 value);
   event Unlocked(address indexed delegator, address indexed delegatee, uint256 value);
 
-  mapping (address => uint256) public locked;
+  mapping (address => mapping (address => uint256)) public locked;
   IERC20 private _token;
 
   constructor(IERC20 token) public {
@@ -20,15 +20,15 @@ contract StakingEscrow {
 
   function transfer(address recipient, uint256 amount) external returns (bool) {
     _token.safeTransferFrom(msg.sender, address(this), amount);
-    locked[msg.sender] = locked[msg.sender].add(amount);
+    locked[msg.sender][recipient] = locked[msg.sender][recipient].add(amount);
     emit Locked(msg.sender, recipient, amount);
     return true;
   }
 
   function transferFrom(address sender, address recipient, uint256 amount) external returns (bool) {
     require(recipient == msg.sender, "can be executed only by recipient");
-    require(locked[recipient] >= amount, "requested more than available");
-    locked[recipient] = locked[recipient].sub(amount);
+    require(locked[recipient][sender] >= amount, "requested more than available");
+    locked[recipient][sender] = locked[recipient][sender].sub(amount);
     _token.safeTransfer(recipient, amount);
     emit Unlocked(recipient, sender, amount);
     return true;
