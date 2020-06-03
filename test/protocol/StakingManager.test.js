@@ -161,16 +161,13 @@ contract('StakingManager', (
       totalStake.should.be.bignumber.equal(minDelegation);
     });
 
-    it('should be able to reject delegations if transcoder is not registered', async () => {
+    it('should not reject delegations if transcoder is not registered', async () => {
       // given
       // when
-      const expectedError = this.stakingManager.delegate(delegator, { from: delegator, value: minDelegation });
-
-      // then
-      await expectedError.should.be.eventually.rejectedWith(EVMError('revert'));
+      this.stakingManager.delegate(transcoder, { from: delegator, value: minDelegation });
 
       const totalStake = await this.stakingManager.getTotalStake(transcoder);
-      totalStake.should.be.bignumber.equal(zero);
+      totalStake.should.be.bignumber.equal(minDelegation);
     });
 
     it('transcoder should be able to self delegate', async () => {
@@ -254,17 +251,8 @@ contract('StakingManager', (
       await this.stakingManager.requestUnbonding(transcoder, minDelegation, { from: delegator });
       await this.stakingManager.requestUnbonding(transcoder, minDelegation, { from: delegator });
 
-      await addSeconds(unbondingPeriod);
-
-      var exist = await this.stakingManager.pendingWithdrawalsExist({from: delegator});
-      exist.should.be.true;
-
-      await this.stakingManager.withdrawAllPending({from: delegator});
       const stake = await this.stakingManager.getDelegatorStake(transcoder, delegator);
       stake.should.be.bignumber.equal(minDelegation);
-
-      exist = await this.stakingManager.pendingWithdrawalsExist({from: delegator});
-      exist.should.be.false;
     });
 
     it('should fail if nothing to withdraw', async () => {
@@ -455,19 +443,18 @@ contract('StakingManager', (
       // given that a delegator requested an unbonding and a slashing occured during the unbonding period
       await addSeconds(approvalPeriod);
 
-      await this.stakingManager.delegate(transcoder, { from: delegator, value: minDelegation });
-      await this.stakingManager.requestUnbonding(transcoder, minDelegation, { from: delegator });
+      await this.stakingManager.requestUnbonding(transcoder, minDelegation, { from: transcoder });
 
-      const balanceBefore = Math.floor((await web3.eth.getBalance(delegator)) / 1e18);
+      const balanceBefore = Math.floor((await web3.eth.getBalance(transcoder)) / 1e18);
 
       await this.stakingManager.slash(transcoder, { from: manager });
 
       // when the delegator withdraws its funds
       await addSeconds(unbondingPeriod);
-      await this.stakingManager.withdrawPending({ from: delegator });
+      await this.stakingManager.withdrawPending({ from: transcoder });
 
       // then the amount requested in the unbonding request gets slashed by the set rate
-      const balanceAfter = Math.floor((await web3.eth.getBalance(delegator)) / 1e18);
+      const balanceAfter = Math.floor((await web3.eth.getBalance(transcoder)) / 1e18);
       const expectedWithdraw = parseInt(web3.utils.fromWei(sixvids.mul(toBN(slashRate)).div(toBN(100))));
       balanceAfter.should.be.equal(balanceBefore + expectedWithdraw);
     });

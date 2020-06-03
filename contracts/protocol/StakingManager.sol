@@ -2,6 +2,7 @@ pragma solidity^0.5.13;
 pragma experimental ABIEncoderV2;
 
 import "openzeppelin-solidity/contracts/ownership/Ownable.sol";
+import "openzeppelin-solidity/contracts/access/Roles.sol";
 import "openzeppelin-solidity/contracts/math/SafeMath.sol";
 
 /**
@@ -12,8 +13,9 @@ import "openzeppelin-solidity/contracts/math/SafeMath.sol";
 */
 contract StakingManager is Ownable {
   using SafeMath for uint256;
+  using Roles for Roles.Role;
 
-  enum TranscoderState { BONDING, BONDED, UNBONDED, UNBONDING }
+  enum TranscoderState { BONDING, BONDED, UNBONDED, UNBONDING, UNREGISTERED }
 
   /// @dev Represents a transcoder's current state
   struct Transcoder {
@@ -34,8 +36,10 @@ contract StakingManager is Ownable {
     mapping (address=>uint256) bondedAmounts;               // bonded amounts indexed to transcoders
     mapping (address=>uint256) slashCounters;               // slash counters indexed to transcoders
     mapping (uint256=>UnbondingRequest) unbondingRequests;  // mapping of unbonding requests timestamps
-    uint256 pending;                                         // index of the first pending unbonding request
+    uint256 pending;                                        // index of the first pending unbonding request
     uint256 next;                                           // index for next unboding request
+    // delegator is managed if all requests are processed by proxy
+    bool managed;
   }
 
   struct UnbondingRequest {
@@ -59,6 +63,8 @@ contract StakingManager is Ownable {
   mapping (address=>Delegator) public delegators;     // mapping of all delegators
   address[] public transcodersArray;
 
+  Roles.Role private managers;
+
   /// @dev events
   event TranscoderRegistered(address indexed transcoder);
   event Delegated(address indexed transcoder, address indexed delegator, uint256 indexed amount);
@@ -70,6 +76,9 @@ contract StakingManager is Ownable {
   event UnbondingRequested(uint256 indexed unbondingID, address indexed delegator, address indexed transcoder,
                            uint256 readiness, uint256 amount);
   event StakeWithdrawal(uint256 indexed unbondingID, address indexed delegator, address indexed transcoder, uint256 amount);
+
+  event ManagerAdded(address indexed manager);
+  event ManagerRemoved(address indexed manager);
 
   /**
   * @notice Constructor.
@@ -85,14 +94,34 @@ contract StakingManager is Ownable {
                 uint256 _unbondingPeriod,
                 uint256 _slashRate,
                 address payable _slashPoolAddress) public {
-
     minDelegation = _minDelegation;
     minSelfStake = _minSelfStake;
     transcoderApprovalPeriod = _transcoderApprovalPeriod;
     unbondingPeriod = _unbondingPeriod;
     slashRate = _slashRate;
     slashPoolAddress = _slashPoolAddress;
+    addManager(msg.sender);
   }
+
+  function addManager(address v) public onlyOwner {
+    managers.add(v);
+    emit ManagerAdded(v);
+  }
+
+  function removeManager(address v) public onlyOwner {
+    managers.remove(v);
+    emit ManagerRemoved(v);
+  }
+
+  function isManager(address v) public view returns (bool) {
+    return managers.has(v);
+  }
+
+  modifier onlyManager() {
+    require(isManager(msg.sender), "not a manager");
+    _;
+  }
+
 
   /**
   * @notice Setter for minimum self-stake, i.e. bonding treshold.
@@ -169,21 +198,13 @@ contract StakingManager is Ownable {
     emit TranscoderRegistered(addr);
   }
 
-  /**
-  * @notice Delegate tokens to a transcoder. Transcoders will call this to self-delegate.
-  * @dev Needs to send minimal delegation amount.
-  * @param transcoderAddr Transcoder address.
-  */
-  function delegate(address transcoderAddr) public payable {
-    address delegatorAddr = msg.sender;
-    uint256 value         = msg.value;
-
+  function _delegate(address transcoderAddr, address delegatorAddr) internal {
     Transcoder storage transcoder = transcoders[transcoderAddr];
     Delegator storage delegator   = delegators[delegatorAddr];
+    uint256 value = msg.value;
 
     require(transcoderAddr != address(0), "Can`t use address 0x0");
     require(value >= minDelegation, "Must deposit at least minimum value");
-    require(transcoder.timestamp > 0, "Transcoder not registered");
 
     if(delegator.bondedAmounts[transcoderAddr] == 0) { // new delegator for this transcoder
       transcoder.delegators.push(delegatorAddr);
@@ -199,15 +220,29 @@ contract StakingManager is Ownable {
   }
 
   /**
-  * @notice Delegator requests stake unbonding. Delegator has to wait for unbondingPeriod before calling withdrawStake() with the returned ID.
-  * @dev Requests get approved immediately if tcoder`s state is BONDING or UNBONDED
-  * @param transcoderAddr transcoder address from which to unbond
-  * @param amount amount to unbond
+  * @notice Delegate tokens to a transcoder. Transcoders will call this to self-delegate.
+  * @dev Needs to send minimal delegation amount.
+  * @param transcoderAddr Transcoder address.
   */
-  function requestUnbonding(address transcoderAddr, uint256 amount) public returns(uint256) {
-    require(transcoderAddr != address(0), "Can`t use address 0x0");
+  function delegate(address transcoderAddr) public payable {
+    Delegator storage delegator = delegators[msg.sender];
+    require(!delegator.managed, "this method can't be used by delegator that deposited ERC20 tokens");
+    _delegate(transcoderAddr, msg.sender);
+  }
 
-    address delegatorAddr = msg.sender;
+  function delegateManaged(address transcoderAddr, address delegatorAddr) public payable onlyManager {
+    Delegator storage delegator = delegators[delegatorAddr];
+    delegator.managed = true;
+    _delegate(transcoderAddr, delegatorAddr);
+  }
+
+  function isManaged(address delegatorAddr) public view returns(bool) {
+    Delegator storage delegator   = delegators[delegatorAddr];
+    return delegator.managed;
+  }
+
+  function _requestUnbonding(address transcoderAddr, address delegatorAddr, uint256 amount) internal returns(uint256) {
+    require(transcoderAddr != address(0), "Can`t use address 0x0");
 
     Transcoder storage transcoder = transcoders[transcoderAddr];
     Delegator storage delegator   = delegators[delegatorAddr];
@@ -227,15 +262,39 @@ contract StakingManager is Ownable {
     uint256 unbondingID = delegator.next;
     delegator.next = delegator.next.add(1);
 
-    if(state == TranscoderState.BONDING || state == TranscoderState.UNBONDED) {
+    // stake can be withdrawn immediatly if:
+    // - this is a withdrawal from delegator
+    // - transcoder is wasn't bonded yet - BONDING
+    // - or it is alread UNBONDED (stake slashed)
+    // in all other cases we need to wait for unbondingPeriod to give us to apply potential penalties
+    // e.g. slashing
+    if(state == TranscoderState.BONDING || state == TranscoderState.UNBONDED || transcoderAddr != delegatorAddr) {
       emit UnbondingRequested(unbondingID, delegatorAddr, transcoderAddr, now, amount);
-      delegator.unbondingRequests[unbondingID] = UnbondingRequest(transcoderAddr, now - unbondingPeriod, amount); // we can withdraw immediatelly
-      require(withdrawStake(unbondingID), "failed to withdraw stake");
+      delegator.unbondingRequests[unbondingID] = UnbondingRequest(transcoderAddr, now - unbondingPeriod, amount);
+      require(withdrawStake(unbondingID, delegatorAddr), "failed to withdraw stake");
     } else {
       emit UnbondingRequested(unbondingID, delegatorAddr, transcoderAddr, now + unbondingPeriod, amount);
       delegator.unbondingRequests[unbondingID] = UnbondingRequest(transcoderAddr, now, amount);
     }
     return unbondingID;
+  }
+
+  /**
+  * @notice Delegator requests stake unbonding. Delegator has to wait for unbondingPeriod before calling withdrawStake() with the returned ID.
+  * @dev Requests get approved immediately if tcoder`s state is BONDING or UNBONDED
+  * @param transcoderAddr transcoder address from which to unbond
+  * @param amount amount to unbond
+  */
+  function requestUnbonding(address transcoderAddr, uint256 amount) public returns(uint256) {
+    Delegator storage delegator = delegators[msg.sender];
+    require(!delegator.managed, "this method can't be used by delegator that deposited ERC20 tokens");
+    return _requestUnbonding(transcoderAddr, msg.sender, amount);
+  }
+
+  function requestUnbondingManaged(address transcoderAddr, address delegatorAddr, uint256 amount) public onlyManager returns(uint256) {
+    Delegator storage delegator = delegators[delegatorAddr];
+    require(delegator.managed, "this method can only be used only for delegator that deposited ERC20 tokens");
+    return _requestUnbonding(transcoderAddr, delegatorAddr, amount);
   }
 
   /**
@@ -247,7 +306,7 @@ contract StakingManager is Ownable {
   function withdrawPending() external {
     Delegator storage delegator = delegators[msg.sender];
     require(delegator.pending < delegator.next, "no pending requests");
-    require(withdrawStake(delegator.pending), "failed to withdraw stake");
+    require(withdrawStake(delegator.pending, msg.sender), "failed to withdraw stake");
     delegator.pending = delegator.pending.add(1);
   }
 
@@ -261,7 +320,7 @@ contract StakingManager is Ownable {
     Delegator storage delegator = delegators[msg.sender];
     require(delegator.pending < delegator.next, "no pending requests");
     for (uint256 i = delegator.pending; i < delegator.next; i++) {
-      bool executed = withdrawStake(i);
+      bool executed = withdrawStake(i, msg.sender);
       if (!executed) return;
       delegator.pending = delegator.pending.add(1);
     }
@@ -285,9 +344,7 @@ contract StakingManager is Ownable {
   * Delegators can also withdraw no matter what the tcoder state is if they made an unbonding requested and the wait period passed.
   * @param unbondingID ID of unbonding request
   */
-  function withdrawStake(uint256 unbondingID) internal returns (bool) {
-    address payable delegatorAddr = msg.sender;
-
+  function withdrawStake(uint256 unbondingID, address delegatorAddr) internal returns (bool) {
     Delegator storage delegator      = delegators[delegatorAddr];
     UnbondingRequest storage request = delegator.unbondingRequests[unbondingID];
 
@@ -316,7 +373,7 @@ contract StakingManager is Ownable {
     uint256 requested = request.amount;
     request.amount = 0;
 
-    delegatorAddr.transfer(requested);
+    msg.sender.transfer(requested);
     emit StakeWithdrawal(unbondingID, delegatorAddr, request.transcoder, requested);
     return true;
   }
@@ -502,7 +559,8 @@ contract StakingManager is Ownable {
     Transcoder storage transcoder = transcoders[transcoderAddr];
     Delegator storage delegator   = delegators[transcoderAddr];
 
-    require(transcoder.timestamp > 0, "Transcoder not registered");
+    if (transcoder.timestamp == 0)
+      return TranscoderState.UNREGISTERED;
 
     if(transcoder.jailed)
       return TranscoderState.UNBONDED;
