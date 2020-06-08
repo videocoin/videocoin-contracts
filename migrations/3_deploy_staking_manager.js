@@ -1,4 +1,5 @@
 const StakingManager = artifacts.require("StakingManager");
+const CASStaking = artifacts.require("CASStaking")
 
 module.exports = async function (deployer, network, accounts) {
   var from;
@@ -51,6 +52,11 @@ module.exports = async function (deployer, network, accounts) {
     slashFund,
     { from }
   );
+
+  await deployer.deploy(CASStaking, StakingManager.address, { from });
+  const staking = await StakingManager.deployed();
+  console.log(`adding ${CASStaking.address} as manager to StakingManager`)
+  await staking.addManager(CASStaking.address);
 
   console.log("Done");
 };
