@@ -24,13 +24,13 @@ module.exports = {
   networks: {
     development: {
       host: "127.0.0.1",
-      port: 8545, 
+      port: 8545,
       network_id: "*",
     },
 
     ci: {
       host: "127.0.0.1",
-      port: 8545, 
+      port: 8545,
       network_id: "*",
     },
 
@@ -61,6 +61,21 @@ module.exports = {
       gas: 4000000,
       network_id: "*",
     },
+
+    ethereum: {
+      provider: function () {
+        const keyPath = process.env.ETHEREUM_KEY_PATH;
+        const pwPath = process.env.ETHEREUM_PW_PATH;
+        const chainURL = process.env.ETHEREUM_CHAIN_URL;
+        const v3key = readV3Key(keyPath, pwPath);
+        return new HDWalletProvider(
+          [v3key],
+          chainURL,
+        );
+      },
+      gas: 8000000,
+      network_id: "*",
+    },
   },
 
   // Set default mocha options here, use special reporters etc.
@@ -73,7 +88,7 @@ module.exports = {
   compilers: {
     solc: {
       // NOTE: we are using this compiler version, because of sealer EVM version
-      version: "0.5.13", 
+      version: "0.5.13",
       settings: {
         // See the solidity docs for advice about optimization and evmVersion
         optimizer: {
