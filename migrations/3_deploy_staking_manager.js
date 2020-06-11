@@ -21,10 +21,9 @@ module.exports = async function (deployer, network, accounts) {
   } else {
     from = accounts[0];
 
-    const sixvids = web3.utils.toWei("6");
     const tenvids = web3.utils.toWei("10");
 
-    minDelegation = sixvids;
+    minDelegation = 1;
     minSelfStake = tenvids;
     approvalPeriod = 5;
     unbondingPeriod = 10;
@@ -52,6 +51,10 @@ module.exports = async function (deployer, network, accounts) {
     slashFund,
     { from }
   );
+
+  if (network === "everest") {
+    from = accounts[5];
+  }
 
   await deployer.deploy(CASStaking, StakingManager.address, { from });
   const staking = await StakingManager.deployed();

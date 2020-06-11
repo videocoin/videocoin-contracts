@@ -51,6 +51,7 @@ module.exports = {
           readV3Key("/vault/secrets/payment-manager.priv", "/vault/secrets/payment-manager.pass"),
           readV3Key("/vault/secrets/bridge-native.priv", "/vault/secrets/bridge-native.pass"),
           readV3Key("/vault/secrets/bridge-remote.priv", "/vault/secrets/bridge-remote.pass"),
+          readV3Key("/vault/secrets/cas-manager.priv", "/vault/secrets/cas-manager.pass"),
         ];
 
         return new HDWalletProvider(
