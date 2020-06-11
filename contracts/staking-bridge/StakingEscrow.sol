@@ -19,6 +19,7 @@ contract StakingEscrow {
   }
 
   function transfer(address recipient, uint256 amount) external returns (bool) {
+    require(amount > 0, "can't deposit zero");
     _token.safeTransferFrom(msg.sender, address(this), amount);
     locked[msg.sender][recipient] = locked[msg.sender][recipient].add(amount);
     emit Locked(msg.sender, recipient, amount);
@@ -26,6 +27,7 @@ contract StakingEscrow {
   }
 
   function transferFrom(address sender, address recipient, uint256 amount) external returns (bool) {
+    require(amount > 0, "can't withdraw zero");
     require(recipient == msg.sender, "can be executed only by recipient");
     require(locked[recipient][sender] >= amount, "requested more than available");
     locked[recipient][sender] = locked[recipient][sender].sub(amount);
