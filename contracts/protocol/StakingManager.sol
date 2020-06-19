@@ -189,6 +189,10 @@ contract StakingManager is Ownable {
     transcoderApprovalPeriod = period;
   }
 
+  function setSlashRate(uint256 rate) public onlyOwner() {
+    slashRate = rate;
+  }
+
   /**
   * @notice Setter for trancoder zone.
   * @dev
