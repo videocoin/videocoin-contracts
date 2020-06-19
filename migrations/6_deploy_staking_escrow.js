@@ -8,7 +8,7 @@ module.exports = async function (deployer, network, accounts) {
 
   const from = accounts[0];
   var erc20 = process.env.ESCROW_ERC20_ADDRESS;
-  if (network === "development") {
+  if (network === "development" || network === "ci") {
      await deployer.deploy(TestERC, { from });
      erc20 = TestERC.address;
   }
