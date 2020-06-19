@@ -50,7 +50,7 @@ contract('StakingManager', (
   ]
 ) => {
   beforeEach('initialize contracts', async () => {
-    this.stakingManager = await StakingManager.new(minDelegation, minSelfDelegation, approvalPeriod, unbondingPeriod, slashRate, slashFund, { from: manager });
+    this.stakingManager = await StakingManager.new(minDelegation, minSelfDelegation, approvalPeriod, unbondingPeriod, slashRate, slashFund, {transcoders: []}, { from: manager });
   });
 
   describe('StakingManager', () => {
@@ -65,6 +65,24 @@ contract('StakingManager', (
       // then
       const newStake = await this.stakingManager.minSelfStake();
       newStake.should.be.bignumber.equal(minSelfDelegation);
+    });
+  });
+
+  describe('Apply snapshot', () => {
+    it('transcoders from snapshot should remain in the same state', async () => {
+        const snapshot = [
+            {addr: transcoder,
+             total: minSelfDelegation.toString(),
+             timestamp: 1,
+             rewardRate: 1,
+             zone: 1,
+             capacity: 100,
+             effectiveMinSelfStake: minSelfDelegation.toString(),
+            },
+        ];
+        const recovered = await StakingManager.new(minDelegation, minSelfDelegation, approvalPeriod, unbondingPeriod, slashRate, slashFund, {transcoders: snapshot}, { from: manager, value: minSelfDelegation});
+        const bonded = await recovered.getTranscoderState(transcoder);
+        bonded.should.be.bignumber.equal(TranscoderState.BONDED);
     });
   });
 
