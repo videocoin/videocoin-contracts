@@ -162,9 +162,7 @@ contract('StakingManager', (
     });
 
     it('should not reject delegations if transcoder is not registered', async () => {
-      // given
-      // when
-      this.stakingManager.delegate(transcoder, { from: delegator, value: minDelegation });
+      await this.stakingManager.delegate(transcoder, { from: delegator, value: minDelegation });
 
       const totalStake = await this.stakingManager.getTotalStake(transcoder);
       totalStake.should.be.bignumber.equal(minDelegation);
