@@ -49,6 +49,7 @@ module.exports = async function (deployer, network, accounts) {
     unbondingPeriod,
     slashRate,
     slashFund,
+    {transcoders: []},
     { from }
   );
 

@@ -17,6 +17,22 @@ contract StakingManager is Ownable {
 
   enum TranscoderState { BONDING, BONDED, UNBONDED, UNBONDING, UNREGISTERED }
 
+  // Subset of fields that will be migrated from previous version of contract.
+  struct TranscoderSnapshot {
+    address addr;
+    uint256 total;
+    uint256 timestamp;
+    uint256 rewardRate;
+    uint256 zone;
+    uint256 capacity;
+    uint256 effectiveMinSelfStake;
+  }
+
+  // Data that is used to restore contract state.
+  struct Snapshot {
+    TranscoderSnapshot[] transcoders;
+  }
+
   /// @dev Represents a transcoder's current state
   struct Transcoder {
     uint256 total;                      // total bonded amount in a pool
@@ -89,11 +105,12 @@ contract StakingManager is Ownable {
   * @param _slashRate rate by which stakes are slashed
   */
   constructor(uint256 _minDelegation,
-                uint256 _minSelfStake,
-                uint256 _transcoderApprovalPeriod,
-                uint256 _unbondingPeriod,
-                uint256 _slashRate,
-                address payable _slashPoolAddress) public {
+              uint256 _minSelfStake,
+              uint256 _transcoderApprovalPeriod,
+              uint256 _unbondingPeriod,
+              uint256 _slashRate,
+              address payable _slashPoolAddress,
+              Snapshot memory snapshot) public payable {
     minDelegation = _minDelegation;
     minSelfStake = _minSelfStake;
     transcoderApprovalPeriod = _transcoderApprovalPeriod;
@@ -101,6 +118,35 @@ contract StakingManager is Ownable {
     slashRate = _slashRate;
     slashPoolAddress = _slashPoolAddress;
     addManager(msg.sender);
+    applySnapshot(snapshot);
+  }
+
+  /**
+  * @notice applies snapshot from previous state.
+  */
+  function applySnapshot(Snapshot memory snapshot) internal {
+    uint256 total = msg.value;
+    for (uint i=0; i<snapshot.transcoders.length; i++) {
+      TranscoderSnapshot memory tn = snapshot.transcoders[i];
+      require(total >= tn.total, "msg.value is lower than staked amount");
+      total = total.sub(tn.total);
+      Transcoder storage transcoder = transcoders[tn.addr];
+      transcoder.total = tn.total;
+      transcoder.timestamp = tn.timestamp;
+      transcoder.rewardRate = tn.rewardRate;
+      transcoder.zone = tn.zone;
+      transcoder.capacity = tn.capacity;
+      transcoder.effectiveMinSelfStake = tn.effectiveMinSelfStake;
+      transcodersArray.push(tn.addr);
+      _delegate(tn.addr, tn.addr, tn.total);
+    }
+  }
+
+  /**
+  * @notice Drain all staked funds from the contract. Required for efficient funds migration.
+  */
+  function drain() public onlyOwner {
+    msg.sender.transfer(address(this).balance);
   }
 
   function addManager(address v) public onlyOwner {
@@ -198,10 +244,9 @@ contract StakingManager is Ownable {
     emit TranscoderRegistered(addr);
   }
 
-  function _delegate(address transcoderAddr, address delegatorAddr) internal {
+  function _delegate(address transcoderAddr, address delegatorAddr, uint256 value) internal {
     Transcoder storage transcoder = transcoders[transcoderAddr];
     Delegator storage delegator   = delegators[delegatorAddr];
-    uint256 value = msg.value;
 
     require(transcoderAddr != address(0), "Can`t use address 0x0");
     require(value >= minDelegation, "Must deposit at least minimum value");
@@ -227,13 +272,13 @@ contract StakingManager is Ownable {
   function delegate(address transcoderAddr) public payable {
     Delegator storage delegator = delegators[msg.sender];
     require(!delegator.managed, "this method can't be used by delegator that deposited ERC20 tokens");
-    _delegate(transcoderAddr, msg.sender);
+    _delegate(transcoderAddr, msg.sender, msg.value);
   }
 
   function delegateManaged(address transcoderAddr, address delegatorAddr) public payable onlyManager {
     Delegator storage delegator = delegators[delegatorAddr];
     delegator.managed = true;
-    _delegate(transcoderAddr, delegatorAddr);
+    _delegate(transcoderAddr, delegatorAddr, msg.value);
   }
 
   function isManaged(address delegatorAddr) public view returns(bool) {
