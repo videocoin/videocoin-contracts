@@ -157,6 +157,14 @@ contract StakingManager is Ownable {
   }
 
   /**
+  * @notice Setter for slash rate.
+  * @param rate from 0 to 100
+  */
+  function setSlashRate(uint256 rate) public onlyOwner() {
+    slashRate = rate;
+  }
+
+  /**
   * @notice Setter for slash pool address.
   * @dev Can be 0x0
   * @param addr new slash pool address
