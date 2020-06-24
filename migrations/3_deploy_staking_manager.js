@@ -2,13 +2,13 @@ const StakingManager = artifacts.require("StakingManager");
 const CASStaking = artifacts.require("CASStaking")
 
 module.exports = async function (deployer, network, accounts) {
-  var from;
+  var managerOwner, casOwner;
   var minDelegation, minSelfStake;
   var approvalPeriod, unbondingPeriod;
   var slashRate, slashFund;
   if (network === "everest") {
     // Key order is defined in everest provider
-    from = accounts[1];
+    managerOwner = accounts[1];
 
     const day = 60 * 60 * 24;
     const minute = 60;
@@ -20,7 +20,7 @@ module.exports = async function (deployer, network, accounts) {
     slashRate = 0;
     slashFund = "0x0000000000000000000000000000000000000000";
   } else {
-    from = accounts[0];
+    managerOwner = accounts[0];
 
     const tenvids = web3.utils.toWei("10");
 
@@ -33,7 +33,7 @@ module.exports = async function (deployer, network, accounts) {
   }
 
   console.log(
-    `Deploying ${StakingManager.contractName} from ${from} on network: ${network}`
+    `Deploying ${StakingManager.contractName} from ${managerOwner} on network: ${network}`
   );
   console.log(`required stake:      ${minSelfStake}`);
   console.log(`required delegation: ${minDelegation}`);
@@ -50,17 +50,19 @@ module.exports = async function (deployer, network, accounts) {
     unbondingPeriod,
     slashRate,
     slashFund,
-    { from }
+    { from: managerOwner }
   );
 
   if (network === "everest") {
-    from = accounts[5];
+    casOwner = accounts[5];
+  } else {
+    casOwner = accounts[0];
   }
 
-  await deployer.deploy(CASStaking, StakingManager.address, { from });
+  await deployer.deploy(CASStaking, StakingManager.address, { from: casOwner });
   const staking = await StakingManager.deployed();
   console.log(`adding ${CASStaking.address} as manager to StakingManager`)
-  await staking.addManager(CASStaking.address);
+  await staking.addManager(CASStaking.address, { from: managerOwner });
 
   console.log("Done");
 };
