@@ -3,7 +3,7 @@ const TestERC = artifacts.require("TestERC");
 
 module.exports = async function (deployer, network, accounts) {
   if (network === "everest") {
-    console.log("Skip ${StakingEscrow.contractName} deployment");
+    console.log("Skip ${TestERC.contractName} deployment");
   }
 
   const from = accounts[0];
