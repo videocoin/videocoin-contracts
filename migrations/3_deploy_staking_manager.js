@@ -11,10 +11,11 @@ module.exports = async function (deployer, network, accounts) {
     from = accounts[1];
 
     const day = 60 * 60 * 24;
+    const min = 60;
 
     minDelegation = web3.utils.toWei("1");
-    minSelfStake = web3.utils.toWei("333333");
-    approvalPeriod = 10 * day;
+    minSelfStake = web3.utils.toWei("50000");
+    approvalPeriod = 5 * minute;
     unbondingPeriod = 21 * day;
     slashRate = 0;
     slashFund = "0x0000000000000000000000000000000000000000";
