@@ -78,6 +78,22 @@ module.exports = {
       gasPrice: 40000000000,
       network_id: "*",
     },
+
+    goerli: {
+      provider: function () {
+        const keyPath = process.env.ETHEREUM_KEY_PATH;
+        const pwPath = process.env.ETHEREUM_PW_PATH;
+        const chainURL = process.env.ETHEREUM_CHAIN_URL;
+        const v3key = readV3Key(keyPath, pwPath);
+        return new HDWalletProvider(
+          [v3key],
+          chainURL,
+        );
+      },
+      gas: 8000000,
+      gasPrice: 40000000000,
+      network_id: 5,
+    },
   },
 
   // Set default mocha options here, use special reporters etc.
