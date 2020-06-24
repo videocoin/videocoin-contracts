@@ -11,7 +11,7 @@ module.exports = async function (deployer, network, accounts) {
     from = accounts[1];
 
     const day = 60 * 60 * 24;
-    const min = 60;
+    const minute = 60;
 
     minDelegation = web3.utils.toWei("1");
     minSelfStake = web3.utils.toWei("50000");
