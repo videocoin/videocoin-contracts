@@ -2,6 +2,8 @@ const HDWalletProvider = require("@truffle/hdwallet-provider");
 const Wallet = require("ethereumjs-wallet");
 const fs = require("fs");
 
+require('dotenv').config();
+
 function readV3Key(cipherFile, passphraseFile) {
   try {
     const priv = JSON.parse(fs.readFileSync(cipherFile));
