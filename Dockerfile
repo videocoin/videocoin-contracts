@@ -1,5 +1,9 @@
 FROM node:10
 
+ARG tag
+
+ENV TAG=$tag
+
 WORKDIR /contracts
 
 COPY . .

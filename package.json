@@ -16,6 +16,7 @@
     "@truffle/hdwallet-provider": "^1.0.34",
     "eth-json-rpc-filters": "^4.1.1",
     "ethereumjs-wallet": "^0.6.3",
+    "firebase": "^7.15.5",
     "openzeppelin-solidity": "^2.5.1"
   },
   "devDependencies": {
