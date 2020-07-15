@@ -50,7 +50,7 @@ async function storeContractData(contract, from, network) {
     .collection("contracts")
     .doc(
       `${process.env.DEPLOYMENT_ENVIRONMENT || network}#${name}#${
-        process.env.TAG.replace("/", "%") || "local"
+        process.env.TAG.replace("/", "@") || "local"
       }`
     )
     .set(data);
