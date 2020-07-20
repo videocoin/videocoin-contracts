@@ -5,14 +5,14 @@ require("firebase/auth");
 function initializeApp() {
   const app = firebase.initializeApp(JSON.parse(process.env.FIRESTORE_CONFIG));
   // const app = firebase.initializeApp({
-  //   apiKey: "AIzaSyA7oip8HUVIW1EvvZLVUDixho0iK_Ln3qg",
-  //   authDomain: "videocoin-firebase.firebaseapp.com",
-  //   databaseURL: "https://videocoin-firebase.firebaseio.com",
-  //   projectId: "videocoin-firebase",
-  //   storageBucket: "videocoin-firebase.appspot.com",
-  //   messagingSenderId: "1012727539280",
-  //   appId: "1:1012727539280:web:76812108c27f4068cad355",
-  //   measurementId: "G-W1FSRCDZDZ",
+  //   apiKey: "AIzaSyAM8Xc4clY51WDrpehgv0BHjLC4VgNK-RQ",
+  //   authDomain: "videocoin-firebase-dev.firebaseapp.com",
+  //   databaseURL: "https://videocoin-firebase-dev.firebaseio.com",
+  //   projectId: "videocoin-firebase-dev",
+  //   storageBucket: "videocoin-firebase-dev.appspot.com",
+  //   messagingSenderId: "152238303290",
+  //   appId: "1:152238303290:web:adde0d84fb3afd41b16d03",
+  //   measurementId: "G-FLDQ73Q6JG",
   // });
 
   return app;
