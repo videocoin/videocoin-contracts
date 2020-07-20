@@ -1,5 +1,6 @@
 const StakingManager = artifacts.require("StakingManager");
-const CASStaking = artifacts.require("CASStaking")
+const CASStaking = artifacts.require("CASStaking");
+const store = require("../tools/store");
 
 module.exports = async function (deployer, network, accounts) {
   var managerOwner, casOwner;
@@ -52,6 +53,7 @@ module.exports = async function (deployer, network, accounts) {
     slashFund,
     { from: managerOwner }
   );
+  await store(StakingManager, managerOwner, network);
 
   if (network === "everest") {
     casOwner = accounts[5];
@@ -60,8 +62,10 @@ module.exports = async function (deployer, network, accounts) {
   }
 
   await deployer.deploy(CASStaking, StakingManager.address, { from: casOwner });
+  await store(CASStaking, casOwner, network);
+
   const staking = await StakingManager.deployed();
-  console.log(`adding ${CASStaking.address} as manager to StakingManager`)
+  console.log(`adding ${CASStaking.address} as manager to StakingManager`);
   await staking.addManager(CASStaking.address, { from: managerOwner });
 
   console.log("Done");

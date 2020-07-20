@@ -5,11 +5,14 @@ GANACHE_DOCKER=docker run \
 
 REGISTRY=registry.videocoin.net/contracts
 VERSION ?= dev
+TAG=$(shell git describe --abbrev=0)-$(shell git rev-parse --abbrev-ref HEAD)-$(shell git rev-parse --short HEAD)
 
 
 .PHONY: images
 images:
-	docker build -t ${REGISTRY}/deployment:$(VERSION) .
+	docker build -t ${REGISTRY}/deployment:$(VERSION) \
+	--build-arg tag=${TAG} \
+	-f Dockerfile .
 
 .PHONY: push
 push:
