@@ -6,11 +6,11 @@ This repo contains ethereum based smart contracts for VideoCoin blockchain.
 
 ## Prerequisits
 
-* NodeJS v10
+- NodeJS v10
 
-* Docker
+- Docker
 
-* Truffle Suite
+- Truffle Suite
 
 To install truffle run:
 
@@ -46,7 +46,7 @@ Next, in a new terminal run:
 truffle test
 ```
 
-## Deploying contracts
+## Deploying contracts using truffle scripts
 
 ### Local environment
 
@@ -62,18 +62,41 @@ Now, run deployment command:
 truffle migrate
 ```
 
-### Everest environment
+## Deploying contracts using Docker image
 
-To deploy contracts into dev, staging, prod clusters docker images are used. Images with ABI files should be submitted to docker registry.
+**Note**: _Deployment using docker image allows to store contract information to contract registry._
 
-To create and submitt new image in terminal run:
+To create docker image run following command:
 
 ```$(bash)
-make images
-make push
+make image
 ```
 
-TODO: add link to deployment repo.
+### Deploy smart contracts
+
+Define contract registry variable and run docker image:
+
+```$(bash)
+export NETWORK=goerli
+RUN_OPTIONS='-e NETWORK' make deploy
+```
+
+`NETWORK` variable should contain blockchain network name, i.e. ethereum, goerli, rinkeby, vid-dev, vid-stage, vid-prod, etc.
+
+`make deploy` installs all contracts defined in `/migrations` directory.
+
+### Deploy particular smart contract
+
+Define contract registry variable and run docker image:
+
+```$(bash)
+export NETWORK=vid-dev
+RUN_OPTIONS='-e NETWORK' TRUFFLE_ARG='-f 4 --to 4' make deploy
+```
+
+`TRUFFLE_ARG` is used to pass command arguments to `truffle deploy` command.
+
+`-f 4 --to 4` is translated as "deploy contracts starting **from** migration script with prefix **4** in `/migrations` directory **to** migration with prefix **4**"
 
 ## Code coverage
 
@@ -83,4 +106,4 @@ To run code coverage in terminal run:
 truffle run coverage
 ```
 
-**Note**: *Some tests may fail durring coverage run due to high gas consumption. We might need to exclude those from coverage run.*
+**Note**: _Some tests may fail durring coverage run due to high gas consumption. We might need to exclude those from coverage run._
