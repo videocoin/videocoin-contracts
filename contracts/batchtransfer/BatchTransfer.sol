@@ -4,8 +4,9 @@ pragma experimental ABIEncoderV2;
 import "openzeppelin-solidity/contracts/token/ERC20/IERC20.sol";
 import "openzeppelin-solidity/contracts/token/ERC20/SafeERC20.sol";
 import "openzeppelin-solidity/contracts/math/SafeMath.sol";
+import "openzeppelin-solidity/contracts/ownership/Ownable.sol";
 
-contract BatchTransfer {
+contract BatchTransfer is Ownable {
   using SafeMath for uint256;
   using SafeERC20 for IERC20;
 
@@ -18,7 +19,7 @@ contract BatchTransfer {
 
   constructor() public {}
 
-  function transfer(IERC20 token, uint256 total, Transfer[] calldata transfers) external {
+  function transfer(IERC20 token, uint256 total, Transfer[] calldata transfers) external onlyOwner {
     token.safeTransferFrom(msg.sender, address(this), total);
     for (uint i = 0; i < transfers.length; i++) {
       Transfer memory tn = transfers[i];

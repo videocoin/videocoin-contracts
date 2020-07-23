@@ -13,7 +13,7 @@ contract("staking escrow", ([owner, acc1, acc2, acc3]) => {
     beforeEach("deploy", async () => {
         this.token = await ERC20.new({ from: owner });
         await this.token.mint(acc1, toBN(1000), { from: owner });
-        this.batch = await BatchTransfer.new({ from: owner });
+        this.batch = await BatchTransfer.new({ from: acc1 });
     });
 
     describe("test batch transfer helper", () => {
