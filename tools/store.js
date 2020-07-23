@@ -4,23 +4,13 @@ require("firebase/auth");
 
 function initializeApp() {
   const app = firebase.initializeApp(JSON.parse(process.env.FIRESTORE_CONFIG));
-  // const app = firebase.initializeApp({
-  //   apiKey: "AIzaSyAM8Xc4clY51WDrpehgv0BHjLC4VgNK-RQ",
-  //   authDomain: "videocoin-firebase-dev.firebaseapp.com",
-  //   databaseURL: "https://videocoin-firebase-dev.firebaseio.com",
-  //   projectId: "videocoin-firebase-dev",
-  //   storageBucket: "videocoin-firebase-dev.appspot.com",
-  //   messagingSenderId: "152238303290",
-  //   appId: "1:152238303290:web:adde0d84fb3afd41b16d03",
-  //   measurementId: "G-FLDQ73Q6JG",
-  // });
 
   return app;
 }
 
 async function storeContractData(contract, from, network) {
   if (
-    !process.env.DEPLOYMENT_ENVIRONMENT ||
+    !process.env.NETWORK ||
     !process.env.TAG ||
     !process.env.FIRESTORE_CONFIG
   ) {
@@ -37,8 +27,8 @@ async function storeContractData(contract, from, network) {
   const abi = JSON.stringify(contract.abi);
 
   const data = {
-    environment: process.env.DEPLOYMENT_ENVIRONMENT || network,
-    tag: process.env.TAG || "local",
+    network: process.env.NETWORK || network,
+    tag: process.env.TAG || "dev",
     name,
     address,
     deployer: from,
@@ -49,8 +39,8 @@ async function storeContractData(contract, from, network) {
   await store
     .collection("contracts")
     .doc(
-      `${process.env.DEPLOYMENT_ENVIRONMENT || network}#${name}#${
-        process.env.TAG.replace("/", "@") || "local"
+      `${process.env.NETWORK || network}#${name}#${
+        process.env.TAG.replace("/", "@") || "dev"
       }`
     )
     .set(data);
