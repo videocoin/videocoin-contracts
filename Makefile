@@ -21,7 +21,7 @@ push:
 
 .PHONY: deploy
 deploy:
-	docker run ${RUN_OPTIONS} --env-file env.list ${REGISTRY}/deployment:$(VERSION) truffle deploy ${TRUFFLE_ARG}
+	docker run ${RUN_OPTIONS} ${REGISTRY}/deployment:$(VERSION) truffle deploy ${TRUFFLE_ARG}
 
 .PHONY: node
 node:
