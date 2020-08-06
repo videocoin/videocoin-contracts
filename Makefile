@@ -6,22 +6,22 @@ GANACHE_DOCKER=docker run \
 REGISTRY=registry.videocoin.net/contracts
 VERSION?=dev
 TAG=$(shell git describe --abbrev=0)-$(shell git rev-parse --abbrev-ref HEAD)-$(shell git rev-parse --short HEAD)
-TRUFFLE_ARG?=
-RUN_OPTIONS?=
+ARGS?=
+OPTIONS?=
 
 .PHONY: image
 image:
-	docker build -t ${REGISTRY}/deployment:$(VERSION) \
+	docker build -t ${REGISTRY}/vid-deployment:$(VERSION) \
 	--build-arg tag=${TAG} \
 	-f Dockerfile .
 
 .PHONY: push
 push:
-	docker push ${REGISTRY}/deployment:$(VERSION)
+	docker push ${REGISTRY}/vid-deployment:$(VERSION)
 
 .PHONY: deploy
 deploy:
-	docker run ${RUN_OPTIONS} --env-file env.list ${REGISTRY}/deployment:$(VERSION) truffle deploy ${TRUFFLE_ARG}
+	docker run ${OPTIONS} ${REGISTRY}/vid-deployment:$(VERSION) truffle deploy ${ARGS}
 
 .PHONY: node
 node:

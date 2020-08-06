@@ -1,9 +1,11 @@
+const fs = require("fs");
 const firebase = require("firebase/app");
 require("firebase/firestore");
 require("firebase/auth");
 
 function initializeApp() {
-  const app = firebase.initializeApp(JSON.parse(process.env.FIRESTORE_CONFIG));
+  const rawdata = fs.readFileSync(process.env.FIRESTORE_CONFIG);
+  const app = firebase.initializeApp(JSON.parse(rawdata));
 
   return app;
 }

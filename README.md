@@ -77,8 +77,9 @@ make image
 Define contract registry variable and run docker image:
 
 ```$(bash)
-export NETWORK=goerli
-RUN_OPTIONS='-e NETWORK' make deploy
+export NETWORK=vid-dev
+export FIRESTORE_CONFIG=./firestore.json
+OPTIONS='-e NETWORK -e FIRESTORE_CONFIG' make deploy
 ```
 
 `NETWORK` variable should contain blockchain network name, i.e. ethereum, goerli, rinkeby, vid-dev, vid-stage, vid-prod, etc.
@@ -91,10 +92,11 @@ Define contract registry variable and run docker image:
 
 ```$(bash)
 export NETWORK=vid-dev
-RUN_OPTIONS='-e NETWORK' TRUFFLE_ARG='-f 4 --to 4' make deploy
+export FIRESTORE_CONFIG=./firestore.json
+OPTIONS='-e NETWORK -e FIRESTORE_CONFIG' ARGS='-f 4 --to 4' make deploy
 ```
 
-`TRUFFLE_ARG` is used to pass command arguments to `truffle deploy` command.
+`ARGS` is used to pass command arguments to `truffle deploy` command.
 
 `-f 4 --to 4` is translated as "deploy contracts starting **from** migration script with prefix **4** in `/migrations` directory **to** migration with prefix **4**"
 

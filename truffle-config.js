@@ -18,9 +18,7 @@ function readV3Key(cipherFile, passphraseFile) {
   }
 }
 
-
 module.exports = {
-
   networks: {
     development: {
       host: "127.0.0.1",
@@ -39,19 +37,37 @@ module.exports = {
       network_id: "*",
       port: 8555,
       gas: 0xfffffffffff,
-      gasPrice: 0x01
+      gasPrice: 0x01,
     },
 
     everest: {
       provider: function () {
         // IMPORTANT: do not change key order!
         const privateKeys = [
-          readV3Key("/vault/secrets/stream-manager.priv", "/vault/secrets/stream-manager.pass"),
-          readV3Key("/vault/secrets/staking-manager.priv", "/vault/secrets/staking-manager.pass"),
-          readV3Key("/vault/secrets/payment-manager.priv", "/vault/secrets/payment-manager.pass"),
-          readV3Key("/vault/secrets/bridge-native.priv", "/vault/secrets/bridge-native.pass"),
-          readV3Key("/vault/secrets/bridge-remote.priv", "/vault/secrets/bridge-remote.pass"),
-          readV3Key("/vault/secrets/cas-manager.priv", "/vault/secrets/cas-manager.pass"),
+          readV3Key(
+            "/vault/secrets/stream-manager.priv",
+            "/vault/secrets/stream-manager.pass"
+          ),
+          readV3Key(
+            "/vault/secrets/staking-manager.priv",
+            "/vault/secrets/staking-manager.pass"
+          ),
+          readV3Key(
+            "/vault/secrets/payment-manager.priv",
+            "/vault/secrets/payment-manager.pass"
+          ),
+          readV3Key(
+            "/vault/secrets/bridge-native.priv",
+            "/vault/secrets/bridge-native.pass"
+          ),
+          readV3Key(
+            "/vault/secrets/bridge-remote.priv",
+            "/vault/secrets/bridge-remote.pass"
+          ),
+          readV3Key(
+            "/vault/secrets/cas-manager.priv",
+            "/vault/secrets/cas-manager.pass"
+          ),
         ];
 
         return new HDWalletProvider(
@@ -61,38 +77,6 @@ module.exports = {
       },
       gas: 4000000,
       network_id: "*",
-    },
-
-    ethereum: {
-      provider: function () {
-        const keyPath = process.env.ETHEREUM_KEY_PATH;
-        const pwPath = process.env.ETHEREUM_PW_PATH;
-        const chainURL = process.env.ETHEREUM_CHAIN_URL;
-        const v3key = readV3Key(keyPath, pwPath);
-        return new HDWalletProvider(
-          [v3key],
-          chainURL,
-        );
-      },
-      gas: 8000000,
-      gasPrice: 40000000000,
-      network_id: "*",
-    },
-
-    goerli: {
-      provider: function () {
-        const keyPath = process.env.ETHEREUM_KEY_PATH;
-        const pwPath = process.env.ETHEREUM_PW_PATH;
-        const chainURL = process.env.ETHEREUM_CHAIN_URL;
-        const v3key = readV3Key(keyPath, pwPath);
-        return new HDWalletProvider(
-          [v3key],
-          chainURL,
-        );
-      },
-      gas: 8000000,
-      gasPrice: 40000000000,
-      network_id: 5,
     },
   },
 
