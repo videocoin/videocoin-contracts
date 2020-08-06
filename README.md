@@ -2,7 +2,9 @@
 
 ![Build Status](https://drone.videocoin.net/api/badges/videocoin/videocoin-contracts/status.svg)
 
-This repo contains ethereum based smart contracts for VideoCoin blockchain.
+This repo contains smart contracts for VideoCoin blockchain.
+
+**Note**: To view Videocoin smart contracts follow this [link](https://github.com/videocoin/ethereum-contracts)
 
 ## Prerequisits
 
