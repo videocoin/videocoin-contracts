@@ -110,4 +110,4 @@ To run code coverage in terminal run:
 truffle run coverage
 ```
 
-**Note**: _Some tests may fail durring coverage run due to high gas consumption. We might need to exclude those from coverage run._
+**Note**: _Some tests may fail during coverage run due to high gas consumption. We might need to exclude those from coverage run._
